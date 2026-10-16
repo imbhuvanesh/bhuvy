@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BHUVY</title>
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="is-loading">
+
+  <!-- ==================== PRELOADER ==================== -->
+  <div class="preloader" id="preloader">
+    <div class="preloader__center">
+      <div class="preloader__word" id="preloadWord" aria-hidden="true"></div>
+      <p class="sr-only" role="status" id="loadStatus">Loading website</p>
+    </div>
+  </div>
+
+  <!-- ==================== SITE ==================== -->
+  <div class="site" id="site">
+    <!-- content goes here -->
+  </div>
+
+  <noscript>
+    <style>
+      .preloader { display: none !important; }
+      body.is-loading { overflow: auto !important; height: auto !important; position: static !important; }
+      .site { opacity: 1 !important; }
+    </style>
+  </noscript>
+
+  <!-- Failsafe: the site is never stuck behind the preloader -->
+  <script>
+    window.__preloaderFailsafe = setTimeout(function () {
+      var p = document.getElementById('preloader');
+      if (p && p.parentNode) p.parentNode.removeChild(p);
+      document.documentElement.classList.add('force-loaded');
+      document.body.classList.remove('is-loading');
+      document.body.classList.add('is-revealed');
+    }, 8000);
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+/* ============================================================
+   BHUVY — preloader only (base + tokens ready for content)
+   ============================================================ */
+
+/* ---------- Fonts ---------- */
+@font-face {
+  font-family: 'Advercase';
+  src: url('fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Advercase';
+  src: url('fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Kith';
+  src: url('fonts/Kith-Regular-Exfont15f4.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Tamil script (Advercase / Kith have no Tamil glyphs) */
+@font-face {
+  font-family: 'Noto Sans Tamil';
+  src: url('fonts/Tamil/NotoSansTamil-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0964-0965, U+0B82-0BFA, U+200C-200D, U+20B9, U+25CC;
+}
+@font-face {
+  font-family: 'Noto Sans Tamil';
+  src: url('fonts/Tamil/NotoSansTamil-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0964-0965, U+0B82-0BFA, U+200C-200D, U+20B9, U+25CC;
+}
+
+/* ---------- Tokens ---------- */
+:root {
+  --bg: #0a0a0b;
+  --bg-2: #101012;
+  --fg: #f2f0ea;
+  --muted: #8f8d86;
+  --line: rgba(242, 240, 234, 0.13);
+  --accent: #ff5436;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-cine: cubic-bezier(0.76, 0, 0.24, 1);
+  --pad: clamp(1.25rem, 4vw, 4rem);
+}
+
+/* ---------- Reset / base ---------- */
+*,
+*::before,
+*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+body.is-loading {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+}
+
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+em { font-style: normal; color: var(--accent); }
+::selection { background: var(--accent); color: #0a0a0b; }
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================
+   PRELOADER
+   ============================================================ */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--pad);
+  background: var(--bg);
+  clip-path: inset(0 0 0 0);
+  transition: clip-path 1.05s var(--ease-cine);
+  will-change: clip-path;
+}
+
+.preloader.is-hidden {
+  clip-path: inset(0 0 100% 0);
+  pointer-events: none;
+}
+
+.force-loaded .preloader { display: none !important; }
+
+.preloader__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.8s var(--ease-cine), opacity 0.6s ease;
+}
+
+.preloader.is-exiting .preloader__center {
+  transform: translateY(-1.5rem);
+  opacity: 0.9;
+}
+
+/* --- The word --- */
+.preloader__word {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0.09em;
+  font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(2.6rem, 12vw, 9rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  min-height: 1em;
+}
+
+.preloader__char {
+  display: inline-block;
+  min-width: 0.72em;
+  text-align: center;
+  color: var(--fg);
+  will-change: transform, filter, opacity;
+}
+
+.preloader__char.is-scrambling {
+  opacity: 0.45;
+  filter: blur(3px);
+}
+
+.preloader__char.is-locked {
+  animation: char-lock 0.6s var(--ease-out) both;
+}
+
+@keyframes char-lock {
+  0%   { opacity: 0;   filter: blur(9px); transform: translateY(0.14em) scale(0.86); }
+  45%  { opacity: 1; }
+  100% { opacity: 1;   filter: blur(0);   transform: none; }
+}
+
+/* character dispersal on exit */
+.preloader.is-exiting .preloader__char {
+  animation: char-disperse 0.7s var(--ease-cine) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+@keyframes char-disperse {
+  to {
+    opacity: 0;
+    filter: blur(16px);
+    transform: translateY(-0.55em) scale(0.9);
+  }
+}
+
+/* ============================================================
+   SITE REVEAL
+   ============================================================ */
+.site {
+  opacity: 0;
+  transition: opacity 0.9s ease 0.15s;
+}
+
+body.is-revealed .site { opacity: 1; }
+
+/* reveal-on-scroll (for content added later) */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(6px);
+  transition:
+    opacity 0.9s var(--ease-out) var(--d, 0s),
+    transform 0.9s var(--ease-out) var(--d, 0s),
+    filter 0.9s var(--ease-out) var(--d, 0s);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.force-loaded [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+    transition-delay: 0s !important;
+  }
+
+  .preloader__char { animation-delay: 0s !important; }
+  [data-reveal] { filter: none; transform: none; }
+}
