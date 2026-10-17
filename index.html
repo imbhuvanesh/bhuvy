@@ -8,12 +8,16 @@
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="videos/preloader.mp4" as="video" type="video/mp4">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="is-loading">
 
   <!-- ==================== PRELOADER ==================== -->
   <div class="preloader" id="preloader">
+    <video class="preloader__video" id="preloaderVideo" autoplay muted loop playsinline preload="auto" poster="photos/preloader-bg.jpg">
+      <source src="videos/preloader.mp4" type="video/mp4">
+    </video>
     <div class="preloader__center">
       <div class="preloader__word" id="preloadWord" aria-hidden="true"></div>
       <p class="sr-only" role="status" id="loadStatus">Loading website</p>

@@ -13,6 +13,7 @@
   var preloader = doc.getElementById('preloader');
   var wordEl = doc.getElementById('preloadWord');
   var statusEl = doc.getElementById('loadStatus');
+  var preloaderVideo = doc.getElementById('preloaderVideo');
 
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -270,22 +271,45 @@
 
     if (statusEl) statusEl.textContent = 'Website loaded';
 
+    if (preloaderVideo) {
+      try {
+        preloaderVideo.pause();
+        preloaderVideo.currentTime = 0;
+      } catch (e) {}
+    }
+
     var quick = reducedMotion.matches;
 
-    wait(quick ? 250 : 450)
+    // Add random rotation to each char for center collapse feel
+    var charSpans = wordEl.querySelectorAll('.preloader__char');
+    for (var ci = 0; ci < charSpans.length; ci++) {
+      var r = (Math.random() - 0.5) * 60;
+      charSpans[ci].style.setProperty('--r', r + 'deg');
+    }
+
+    wait(quick ? 200 : 350)
       .then(function () {
         preloader.classList.add('is-exiting');
-        return wait(quick ? 150 : 720);
+        return wait(quick ? 150 : 650);
       })
       .then(function () {
         body.classList.remove('is-loading');
         body.classList.add('is-revealed');
         preloader.classList.add('is-hidden');
-        return wait(quick ? 250 : 1100);
+        return wait(quick ? 200 : 600);
       })
       .then(function () {
+        if (preloaderVideo) {
+          try {
+            preloaderVideo.removeAttribute('src');
+            var sources = preloaderVideo.querySelectorAll('source');
+            for (var s = 0; s < sources.length; s++) sources[s].removeAttribute('src');
+            preloaderVideo.load();
+          } catch (e) {}
+        }
         if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
         preloader = null;
+        preloaderVideo = null;
         initSite();
         cleanup();
       });
@@ -333,6 +357,16 @@
     introDone = true;
     if (shownProgress >= 100) exit();
   });
+
+  // Try to play video (in case autoplay didn't trigger immediately)
+  if (preloaderVideo) {
+    preloaderVideo.muted = true;
+    preloaderVideo.playsInline = true;
+    var playPromise = preloaderVideo.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(function () {});
+    }
+  }
 
   loop(progressTick);
 
