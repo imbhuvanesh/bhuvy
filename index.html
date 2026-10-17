@@ -27,26 +27,462 @@
 
   <!-- ==================== SITE ==================== -->
   <div class="site" id="site">
-    <!-- About Section -->
-    <section class="about" id="about">
-      <div class="about__bg">
-        <img src="photos/bg.png" alt="About background" class="about__bg-img">
+
+    <!-- ==================== HERO ====================
+         The words reveal one after another on a loop, so the
+         hero takes a single screen.
+    -->
+    <!-- ============ STACKED CARDS — the hero pins while the About card slides over it ============ -->
+    <div class="stack">
+    <section class="hero" id="hero">
+      <div class="hero__bg" aria-hidden="true">
+        <img src="photos/hero bg.png" alt="" class="hero__bg-img">
       </div>
-      <div class="about__container">
-        <div class="about__image" data-reveal data-reveal-delay="0">
-          <img src="photos/img.png" alt="Bhuvanesh A" class="about__img">
-        </div>
-        <div class="about__content" data-reveal data-reveal-delay="100">
-          <h2 class="about__title">About Me</h2>
-          <p class="about__text">
-            I'm <strong>Bhuvanesh A</strong>, a <em>Freelance Developer</em> and <em>Video Editor</em> passionate about turning ideas into <em>impactful digital experiences</em>. I build <em>modern websites</em>, develop <em>applications</em>, and create <em>engaging video content</em> that combines <em>creativity</em> with purpose.
-          </p>
-          <p class="about__text">
-            I focus on crafting solutions that are <em>visually appealing</em>, <em>functional</em>, and <em>user-friendly</em>. With every project, I strive to <em>learn</em>, <em>innovate</em>, and deliver work that <em>brings ideas to life</em>.
-          </p>
-        </div>
+      <div class="hero__scrim" aria-hidden="true"></div>
+
+      <div class="hero__inner">
+        <h1 class="hero__title" data-reveal data-reveal-delay="0">
+          <span class="sr-only">Bhuvanesh — Developer &amp; Video Editor</span>
+          <span class="hero__cycle" id="heroCycle" aria-hidden="true"><span class="hero__word is-first">BHUVANESH</span></span>
+        </h1>
       </div>
     </section>
+
+      <!-- ==================== ABOUT (the card that rides over the pinned hero) ==================== -->
+      <section class="chapter chapter--card" id="about" aria-labelledby="aboutTitle">
+        <div class="chapter__inner">
+          <div class="about">
+            <div class="about__media" data-reveal>
+              <img class="about__img" src="photos/img.png" alt="Portrait of Bhuvanesh A" loading="lazy" decoding="async">
+            </div>
+            <div class="about__body">
+              <h2 class="chapter__title" id="aboutTitle" data-reveal data-reveal-delay="100">About Me</h2>
+              <p class="chapter__text" data-reveal data-reveal-delay="200">
+                I'm <strong>Bhuvanesh A</strong>, a <em>Freelance Developer</em> and <em>Video Editor</em> passionate
+                about turning ideas into impactful digital experiences. I build modern websites, develop
+                applications, and create engaging video content that combines creativity with purpose.
+              </p>
+              <p class="chapter__text" data-reveal data-reveal-delay="300">
+                I focus on crafting solutions that are visually appealing, functional, and user-friendly.
+                With every project, I strive to learn, innovate, and deliver work that brings ideas to life.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================== CHAPTERS (shared bg image) ==================== -->
+    <div class="chapters">
+      <div class="chapters__bg" aria-hidden="true">
+        <img class="chapters__bg-img" src="photos/bg.png" alt="" loading="lazy" decoding="async">
+      </div>
+
+      <!-- ==================== SERVICES ==================== -->
+      <section class="chapter" id="services" aria-labelledby="servicesTitle">
+        <div class="chapter__inner">
+          <header class="chapter__head">
+            <h2 class="chapter__title" id="servicesTitle" data-reveal data-reveal-delay="100">My Services</h2>
+            <p class="chapter__text" data-reveal data-reveal-delay="200">
+              I build websites, web apps, and mobile apps — and edit videos that bring your ideas to life.
+            </p>
+            <p class="chapter__text" data-reveal data-reveal-delay="300">
+              Clean, responsive work that looks great on every device.
+            </p>
+          </header>
+
+          <div class="cards">
+            <article class="card" data-reveal>
+              <span class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </span>
+              <h3 class="card__title">Web Development</h3>
+              <p class="card__desc">Websites and interfaces that make a strong first impression.</p>
+              <ul class="card__list">
+                <li>Personal and professional portfolio websites</li>
+                <li>Landing pages for businesses and brands</li>
+                <li>Responsive web applications</li>
+                <li>Creative website experiences and animations</li>
+              </ul>
+            </article>
+
+            <article class="card" data-reveal data-reveal-delay="100">
+              <span class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.6"/><line x1="11" y1="18.4" x2="13" y2="18.4"/></svg>
+              </span>
+              <h3 class="card__title">App Development</h3>
+              <p class="card__desc">Mobile experiences built to feel fast and effortless.</p>
+              <ul class="card__list">
+                <li>Mobile application development</li>
+                <li>Functional app interfaces</li>
+                <li>Application concepts and prototypes</li>
+              </ul>
+            </article>
+
+            <article class="card" data-reveal data-reveal-delay="200">
+              <span class="card__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2.4"/></svg>
+              </span>
+              <h3 class="card__title">Video Editing</h3>
+              <p class="card__desc">Footage shaped into stories people actually watch.</p>
+              <ul class="card__list">
+                <li>Cinematic video editing</li>
+                <li>Colour grading</li>
+                <li>Social media content</li>
+                <li>Motion graphics and visual storytelling</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== FEATURED PROJECTS ====================
+           Each card is a ready-to-fill slot. Replace the placeholder
+           <div class="work__ph"> with a real screenshot:
+             <img class="work__img" src="photos/my-project.jpg" alt="Describe the project" loading="lazy">
+           and turn the "Live demo" / "GitHub" spans into links:
+             <a class="work__link" href="https://..." target="_blank" rel="noopener noreferrer">Live demo</a>
+      -->
+      <section class="chapter" id="work" aria-labelledby="workTitle">
+        <div class="chapter__inner">
+          <header class="chapter__head">
+            <h2 class="chapter__title" id="workTitle" data-reveal data-reveal-delay="100">My Work</h2>
+            <p class="chapter__text" data-reveal data-reveal-delay="200">
+              Portfolios, applications and software — real projects with screenshots, tech stacks and links
+              go here. The slots below are intentionally empty so nothing is invented.
+            </p>
+          </header>
+
+          <div class="filters" role="group" aria-label="Filter projects by category" data-reveal data-reveal-delay="300">
+            <button type="button" class="filter is-active" data-filter="all">All</button>
+            <button type="button" class="filter" data-filter="portfolios">Portfolios</button>
+            <button type="button" class="filter" data-filter="applications">Applications</button>
+            <button type="button" class="filter" data-filter="software">Software</button>
+          </div>
+
+          <div class="works">
+            <article class="work work--wide" data-category="portfolios" data-reveal>
+              <div class="work__media">
+                <div class="work__ph">Add screenshot</div>
+              </div>
+              <div class="work__body">
+                <span class="work__cat">Portfolios</span>
+                <h3 class="work__title"><span class="ph">Project title</span></h3>
+                <p class="work__desc"><span class="ph">One or two sentences describing the project and the problem it solves.</span></p>
+                <ul class="work__tags">
+                  <li class="tag">HTML</li>
+                  <li class="tag">CSS</li>
+                  <li class="tag">JavaScript</li>
+                </ul>
+                <div class="work__links">
+                  <span class="work__link work__link--todo" title="Add your live demo URL">Live demo</span>
+                  <span class="work__link work__link--todo" title="Add your repository URL">GitHub</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="work" data-category="applications" data-reveal data-reveal-delay="100">
+              <div class="work__media">
+                <div class="work__ph">Add screenshot</div>
+              </div>
+              <div class="work__body">
+                <span class="work__cat">Applications</span>
+                <h3 class="work__title"><span class="ph">Project title</span></h3>
+                <p class="work__desc"><span class="ph">What the app does and who it is for.</span></p>
+                <ul class="work__tags">
+                  <li class="tag">Flutter</li>
+                  <li class="tag">Dart</li>
+                </ul>
+                <div class="work__links">
+                  <span class="work__link work__link--todo" title="Add your live demo URL">Live demo</span>
+                  <span class="work__link work__link--todo" title="Add your repository URL">GitHub</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="work" data-category="software" data-reveal data-reveal-delay="200">
+              <div class="work__media">
+                <div class="work__ph">Add screenshot</div>
+              </div>
+              <div class="work__body">
+                <span class="work__cat">Software</span>
+                <h3 class="work__title"><span class="ph">Project title</span></h3>
+                <p class="work__desc"><span class="ph">The tool, the stack and what it automates.</span></p>
+                <ul class="work__tags">
+                  <li class="tag">Node.js</li>
+                  <li class="tag">MySQL</li>
+                </ul>
+                <div class="work__links">
+                  <span class="work__link work__link--todo" title="Add your live demo URL">Live demo</span>
+                  <span class="work__link work__link--todo" title="Add your repository URL">GitHub</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="work work--wide" data-category="portfolios" data-reveal data-reveal-delay="300">
+              <div class="work__media">
+                <div class="work__ph">Add screenshot</div>
+              </div>
+              <div class="work__body">
+                <span class="work__cat">Portfolios</span>
+                <h3 class="work__title"><span class="ph">Project title</span></h3>
+                <p class="work__desc"><span class="ph">Another case study — duplicates are fine, just fill them in.</span></p>
+                <ul class="work__tags">
+                  <li class="tag">React</li>
+                  <li class="tag">Tailwind CSS</li>
+                </ul>
+                <div class="work__links">
+                  <span class="work__link work__link--todo" title="Add your live demo URL">Live demo</span>
+                  <span class="work__link work__link--todo" title="Add your repository URL">GitHub</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CREATIVE VISUAL SHOWCASE ====================
+           Tiles are placeholders. To add real work, copy this pattern:
+             <button type="button" class="tile tile--wide" data-lightbox data-src="photos/edit-1.jpg" data-alt="Colour graded still">
+               <img class="tile__img" src="photos/edit-1.jpg" alt="Colour graded still" loading="lazy" decoding="async">
+               <span class="tile__overlay"><span class="tile__name">Sunset grade</span><span class="tile__cat">Colour grading</span></span>
+             </button>
+           For a video preview add data-type="video" with an .mp4 (previews stay muted).
+      -->
+      <section class="chapter" id="visuals" aria-labelledby="visualsTitle">
+        <div class="chapter__inner">
+          <header class="chapter__head">
+            <h2 class="chapter__title" id="visualsTitle" data-reveal data-reveal-delay="100">My Visuals</h2>
+            <p class="chapter__text" data-reveal data-reveal-delay="200">
+              A collection of visual stories, cinematic edits, colour grading experiments, photo manipulations,
+              and creative work that reflects my approach to visual storytelling.
+            </p>
+          </header>
+
+          <div class="gallery">
+            <figure class="tile tile--tall"><span class="tile__ph">+ Photo edit</span></figure>
+            <figure class="tile tile--wide"><span class="tile__ph">+ Cinematic edit</span></figure>
+            <figure class="tile"><span class="tile__ph">+ Colour grade</span></figure>
+            <figure class="tile"><span class="tile__ph">+ Before / after</span></figure>
+            <figure class="tile tile--wide"><span class="tile__ph">+ Motion graphics</span></figure>
+            <figure class="tile"><span class="tile__ph">+ Thumbnail</span></figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== SKILLS ==================== -->
+      <section class="chapter" id="skills" aria-labelledby="skillsTitle">
+        <div class="chapter__inner">
+          <header class="chapter__head">
+            <h2 class="chapter__title" id="skillsTitle" data-reveal data-reveal-delay="100">Skills</h2>
+          </header>
+
+          <div class="skills" data-reveal>
+            <span class="skill" role="img" title="HTML5" aria-label="HTML5">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.5 2.5h17L18.6 19 12 21.5 5.4 19 3.5 2.5z"/>
+                <text x="12" y="14.4" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">5</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="CSS3" aria-label="CSS3">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3.5 2.5h17L18.6 19 12 21.5 5.4 19 3.5 2.5z"/>
+                <text x="12" y="14.4" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">3</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="JavaScript" aria-label="JavaScript">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="4"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">JS</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="React" aria-label="React">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <ellipse cx="12" cy="12" rx="10" ry="4.2"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(60 12 12)"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4.2" transform="rotate(-60 12 12)"/>
+                <circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Tailwind CSS" aria-label="Tailwind CSS">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12.5c1.4-3.7 3.9-5.6 7.5-5.6 2.3 0 4 1 5.7 3.1-1.5 2.1-3.2 3.1-5.6 3.1-2 0-3.6-.7-5-2.1"/>
+                <path d="M8 17c1.4-3.7 3.9-5.6 7.5-5.6 2.3 0 4 1 5.7 3.1-1.5 2.1-3.2 3.1-5.6 3.1-2 0-3.6-.7-5-2.1"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Flutter" aria-label="Flutter">
+              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+                <path d="M14.31 8.84 7.43 15.72l3.43 3.42L21 2h-6.69z"/>
+                <path d="M10.88 15.53 7.45 18.96l6.86 3.43H21l-6.69-6.69-3.43 3.43z"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Dart" aria-label="Dart">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="4"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">D</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Android SDK" aria-label="Android SDK">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M7.5 9.5h9v7a1.5 1.5 0 0 1-1.5 1.5H9a1.5 1.5 0 0 1-1.5-1.5z"/>
+                <path d="M9.6 7 8.3 4.9M14.4 7l1.3-2.1"/>
+                <circle cx="9.9" cy="11.6" r="0.9" fill="currentColor" stroke="none"/>
+                <circle cx="14.1" cy="11.6" r="0.9" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Node.js" aria-label="Node.js">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2.3 20.7 7v10L12 21.7 3.3 17V7L12 2.3z"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">n</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Express.js" aria-label="Express.js">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <circle cx="12" cy="12" r="9.4"/>
+                <text x="12" y="15" font-size="7.5" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">Ex</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="MySQL" aria-label="MySQL">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <ellipse cx="12" cy="5.8" rx="7" ry="2.8"/>
+                <path d="M5 5.8v12.4c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8V5.8"/>
+                <path d="M5 12c0 1.55 3.13 2.8 7 2.8s7-1.25 7-2.8"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="MongoDB" aria-label="MongoDB">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2.5c-3.6 3.9-5.2 7.4-5.2 10.7a5.2 5.2 0 0 0 10.4 0c0-3.3-1.6-6.8-5.2-10.7z"/>
+                <path d="M12 6.5v13"/>
+                <path d="M12 19c0 1.4-.7 2.4-2.1 3.2"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Supabase" aria-label="Supabase">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <path d="M13.5 2.2 5.4 13.3h5.3L9.6 21.8l8.6-11.6h-5.4z"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Figma" aria-label="Figma">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2.6h2.6a2.7 2.7 0 0 1 0 5.4H12z"/>
+                <path d="M12 2.6H9.4a2.7 2.7 0 0 0 0 5.4H12z"/>
+                <path d="M12 8H9.4a2.7 2.7 0 0 0 0 5.4H12z"/>
+                <circle cx="14.7" cy="10.7" r="2.7"/>
+                <path d="M12 13.4H9.4a2.7 2.7 0 0 0 2.7 2.7z"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Adobe Photoshop" aria-label="Adobe Photoshop">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="4"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">Ps</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Adobe Premiere Pro" aria-label="Adobe Premiere Pro">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="4"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">Pr</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="Adobe After Effects" aria-label="Adobe After Effects">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="4"/>
+                <text x="12" y="15.2" font-size="8" text-anchor="middle" fill="currentColor" stroke="none" font-weight="700">Ae</text>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="CapCut" aria-label="CapCut">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/>
+                <path d="M10 8.6 15.4 12 10 15.4z" fill="currentColor" stroke="none"/>
+              </svg>
+            </span>
+            <span class="skill" role="img" title="DaVinci Resolve" aria-label="DaVinci Resolve">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9.3"/>
+                <circle cx="12" cy="12" r="3.2"/>
+                <path d="M12 2.7v6.1M12 15.2v6.1M2.7 12h6.1M15.2 12h6.1M4.6 4.6l4.3 4.3M15.1 15.1l4.3 4.3M19.4 4.6l-4.3 4.3M8.9 15.1l-4.3 4.3"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== WORK PROCESS ==================== -->
+      <section class="chapter" id="process" aria-labelledby="processTitle">
+        <div class="chapter__inner">
+          <header class="chapter__head">
+            <h2 class="chapter__title" id="processTitle" data-reveal data-reveal-delay="100">My Process</h2>
+          </header>
+
+          <div class="process">
+            <span class="process__line" aria-hidden="true"><span class="process__line-fill"></span></span>
+            <ol class="process__grid">
+              <li class="stage" data-reveal>
+                <span class="stage__dot" aria-hidden="true"></span>
+                <span class="stage__no">Stage 01</span>
+                <h3 class="stage__title">Discover</h3>
+                <p class="stage__sub">Understand the idea</p>
+                <p class="stage__text">I learn about your goals, requirements, audience, and vision to understand what you want to create.</p>
+              </li>
+              <li class="stage" data-reveal data-reveal-delay="100">
+                <span class="stage__dot" aria-hidden="true"></span>
+                <span class="stage__no">Stage 02</span>
+                <h3 class="stage__title">Plan &amp; Design</h3>
+                <p class="stage__sub">Shape the concept</p>
+                <p class="stage__text">I plan the structure, visuals, and user experience before bringing the idea to life.</p>
+              </li>
+              <li class="stage" data-reveal data-reveal-delay="200">
+                <span class="stage__dot" aria-hidden="true"></span>
+                <span class="stage__no">Stage 03</span>
+                <h3 class="stage__title">Create</h3>
+                <p class="stage__sub">Build the experience</p>
+                <p class="stage__text">I develop the website or application, or edit the video, with attention to detail and quality.</p>
+              </li>
+              <li class="stage" data-reveal data-reveal-delay="300">
+                <span class="stage__dot" aria-hidden="true"></span>
+                <span class="stage__no">Stage 04</span>
+                <h3 class="stage__title">Refine</h3>
+                <p class="stage__sub">Polish every detail</p>
+                <p class="stage__text">I review the result, fix issues, improve the experience, and make final adjustments so the project feels polished, responsive, and ready to use.</p>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CONTACT ====================
+           EDIT: swap the email placeholder for a real link:
+             <a class="btn btn--accent" href="mailto:you@example.com">Email me</a>
+      -->
+      <section class="chapter" id="contact" aria-labelledby="contactTitle">
+        <div class="chapter__inner">
+          <div class="contact">
+            <h2 class="chapter__title contact__title" id="contactTitle" data-reveal data-reveal-delay="100">Contact Me</h2>
+            <p class="chapter__text" data-reveal data-reveal-delay="200">
+              Have a project in mind? I'm always open to discussing new ideas, creative projects, and
+              opportunities to collaborate.
+            </p>
+            <p class="chapter__text" data-reveal data-reveal-delay="300">
+              Whether you need a portfolio website, a landing page, a mobile app, or video editing,
+              feel free to get in touch.
+            </p>
+
+            <p class="contact__actions" data-reveal data-reveal-delay="400">
+              <span class="btn btn--accent btn--todo" title="Replace with your real email address">Email: [YOUR EMAIL ADDRESS]</span>
+            </p>
+
+            <p class="contact__closing" data-reveal data-reveal-delay="400">Let's turn your ideas into reality.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ==================== LIGHTBOX ==================== -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Media preview" aria-hidden="true">
+      <button type="button" class="lightbox__close" aria-label="Close preview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+      <div class="lightbox__media"></div>
+    </div>
+
   </div>
 
   <noscript>

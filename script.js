@@ -316,19 +316,170 @@
   }
 
   /* ---------------------------------------------------------
-     Site behaviour (set up after the reveal so the hero
-     animates in as the curtain lifts)
+     Hero: each word reveals letter by letter, holds, then
+     blurs away so the next word can take over — forever.
   --------------------------------------------------------- */
-  function initSite() {
-    // staggered reveal-on-scroll
-    var targets = doc.querySelectorAll('[data-reveal]');
-    // Make all targets visible immediately to avoid scroll-dependency issues
-    targets.forEach(function (el) {
-      el.classList.add('is-visible');
+  var HERO_WORDS = ['BHUVANESH', 'DEVELOPER', 'EDITOR'];
+
+  // timing for one word's turn
+  var CHAR_STAGGER = 45;   // per-letter delay inside the reveal
+  var WORD_IN = 720;       // one letter's reveal
+  var WORD_HOLD = 1300;    // sit readable on screen
+  var WORD_OUT = 600;      // blur + fade away
+  var WORD_GAP = 160;      // beat of empty screen between words
+
+  function initHero() {
+    var cycle = doc.getElementById('heroCycle');
+    if (!cycle) return;
+
+    cycle.textContent = '';
+
+    // every word lives in the same grid cell so the swap never reflows
+    var words = HERO_WORDS.map(function (word) {
+      var el = doc.createElement('span');
+      el.className = 'hero__word';
+
+      // one span per letter so the reveal can stagger through them
+      for (var i = 0; i < word.length; i++) {
+        var ch = doc.createElement('span');
+        ch.className = 'hero__char';
+        ch.style.setProperty('--i', String(i));
+        ch.textContent = word.charAt(i);
+        el.appendChild(ch);
+      }
+
+      cycle.appendChild(el);
+      return el;
     });
-    if (!('IntersectionObserver' in window)) {
+
+    // reduced motion: pin the first word, no loop
+    if (reducedMotion.matches) {
+      words[0].style.opacity = '1';
       return;
     }
+
+    var hero = doc.getElementById('hero');
+    var timer = null;
+    var current = 0;
+
+    function clearTimer() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    }
+
+    function hide(el) {
+      el.classList.remove('is-active', 'is-out');
+    }
+
+    function show(i) {
+      var el = words[i];
+      current = i;
+      el.classList.add('is-active');
+
+      // reveal finished once the last letter has played
+      var reveal = WORD_IN + CHAR_STAGGER * (el.children.length - 1);
+
+      timer = setTimeout(function () {
+        el.classList.add('is-out');
+
+        timer = setTimeout(function () {
+          hide(el);
+          timer = setTimeout(function () {
+            show((i + 1) % words.length);
+          }, WORD_GAP);
+        }, WORD_OUT);
+      }, reveal + WORD_HOLD);
+    }
+
+    // deliberately raw: the animation must outlive the preloader's
+    // cleanup(), and it pauses itself while the hero is off screen
+    if (hero && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        var entry = entries[0];
+        if (!entry) return;
+
+        if (entry.isIntersecting) {
+          clearTimer();
+          words.forEach(hide);
+          show(current);
+        } else {
+          clearTimer();
+          words.forEach(hide);
+        }
+      });
+      io.observe(hero);
+    }
+
+    // pause the loop while the cursor rests on the words
+    cycle.addEventListener('mouseenter', function () {
+      clearTimer();
+    });
+    cycle.addEventListener('mouseleave', function () {
+      show(current);
+    });
+
+    show(0);
+  }
+
+  /* ---------------------------------------------------------
+     Small helpers
+  --------------------------------------------------------- */
+  function slice(list) {
+    return Array.prototype.slice.call(list || []);
+  }
+
+  function clamp01(n) {
+    return Math.min(1, Math.max(0, n));
+  }
+
+  /* ---------------------------------------------------------
+     Scroll driver: one rAF-throttled ticker for every
+     scroll-driven effect added below
+  --------------------------------------------------------- */
+  function initScrollDriver() {
+    var tasks = [];
+    var ticking = false;
+
+    function frame() {
+      ticking = false;
+      var vh = window.innerHeight || doc.documentElement.clientHeight;
+      for (var i = 0; i < tasks.length; i++) tasks[i](vh);
+    }
+
+    function request() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(frame);
+    }
+
+    window.addEventListener('scroll', request, { passive: true });
+    window.addEventListener('resize', request);
+    window.addEventListener('load', request);
+
+    return {
+      add: function (task) {
+        tasks.push(task);
+        task(window.innerHeight || doc.documentElement.clientHeight);
+        request();
+      },
+      request: request
+    };
+  }
+
+  /* ---------------------------------------------------------
+     Reveal on scroll (staggered via data-reveal-delay)
+  --------------------------------------------------------- */
+  function initReveal() {
+    var targets = slice(doc.querySelectorAll('[data-reveal]'));
+    if (!targets.length) return;
+
+    if (reducedMotion.matches || !('IntersectionObserver' in window)) {
+      targets.forEach(function (el) { el.classList.add('is-visible'); });
+      return;
+    }
+
     try {
       var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
@@ -338,9 +489,198 @@
           }
         });
       }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-      observers.push(io);
-      // re-observe if needed (but we already showed them)
-    } catch (e) {}
+
+      // note: deliberately NOT pushed to `observers` — the preloader
+      // cleanup() disconnects everything in that list right after boot
+      targets.forEach(function (el) { io.observe(el); });
+    } catch (e) {
+      targets.forEach(function (el) { el.classList.add('is-visible'); });
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Chapters: scrolling zooms each section in and back out
+     of frame, using the same language as the hero words
+  --------------------------------------------------------- */
+  function initScrollFx(driver) {
+    var chapters = slice(doc.querySelectorAll('.chapter'));
+    var inners = chapters.map(function (c) { return c.firstElementChild; });
+    var bgImg = doc.querySelector('.chapters__bg-img');
+    var chaptersWrap = doc.querySelector('.chapters');
+    var processEl = doc.querySelector('.process');
+
+    driver.add(function (vh) {
+      if (reducedMotion.matches) {
+        // no motion: show the process timeline as a finished line
+        if (processEl) processEl.style.setProperty('--fill', '1');
+        return;
+      }
+
+      // zoom each section as it travels through the viewport
+      for (var i = 0; i < chapters.length; i++) {
+        var inner = inners[i];
+        if (!inner) continue;
+
+        var rect = chapters[i].getBoundingClientRect();
+
+        // how much of a screen this section covers right now (0 → 1).
+        // Using coverage instead of raw distance keeps tall sections
+        // fully readable on small screens, where a section can be taller
+        // than the viewport.
+        var shown = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+        var coverage = shown / Math.max(1, Math.min(rect.height, vh));
+
+        var fade = clamp01((0.85 - coverage) / 0.85);
+        var below = rect.top + rect.height / 2 >= vh / 2;
+        var scale = below ? 1 - 0.16 * fade : 1 + 0.13 * fade;
+
+        inner.style.opacity = (1 - fade).toFixed(3);
+        inner.style.transform = 'scale(' + scale.toFixed(3) + ')';
+        inner.style.filter = fade > 0.02 ? 'blur(' + (fade * 7).toFixed(2) + 'px)' : 'none';
+      }
+
+      // process timeline fills as the section travels through view
+      if (processEl) {
+        var pr = processEl.getBoundingClientRect();
+        var fill = clamp01(1 - (pr.top + pr.height / 2 - vh / 2) / (vh * 0.85));
+        processEl.style.setProperty('--fill', fill.toFixed(3));
+      }
+
+      // slow parallax on the shared background photo
+      if (bgImg && chaptersWrap) {
+        var total = chaptersWrap.offsetHeight - vh;
+        var scrolled = clamp01(-chaptersWrap.getBoundingClientRect().top / (total || 1)) * total;
+        var shift = Math.max(-50, Math.min(50, scrolled * -0.012));
+        bgImg.style.transform = 'translate3d(0,' + shift.toFixed(1) + 'px,0)';
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Project category filter
+  --------------------------------------------------------- */
+  function initFilters() {
+    var buttons = slice(doc.querySelectorAll('.filter'));
+    var works = slice(doc.querySelectorAll('.work'));
+    if (!buttons.length) return;
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var cat = btn.getAttribute('data-filter') || 'all';
+
+        buttons.forEach(function (b) {
+          b.classList.toggle('is-active', b === btn);
+        });
+
+        works.forEach(function (work) {
+          var show = cat === 'all' || work.getAttribute('data-category') === cat;
+          work.classList.toggle('is-hidden', !show);
+        });
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Lightbox for the visual showcase (images and muted video)
+  --------------------------------------------------------- */
+  function initLightbox() {
+    var box = doc.getElementById('lightbox');
+    if (!box) return;
+
+    var media = box.querySelector('.lightbox__media');
+    var closeBtn = box.querySelector('.lightbox__close');
+    var lastFocus = null;
+
+    function open(src, alt, type) {
+      if (!src) return;
+      media.textContent = '';
+      var node;
+
+      if (type === 'video') {
+        node = doc.createElement('video');
+        node.src = src;
+        node.muted = true;          // previews never play audio
+        node.autoplay = true;
+        node.loop = true;
+        node.playsInline = true;
+        node.setAttribute('controls', '');
+      } else {
+        node = doc.createElement('img');
+        node.src = src;
+        node.alt = alt || '';
+      }
+
+      media.appendChild(node);
+      lastFocus = doc.activeElement;
+      box.classList.add('is-open');
+      box.setAttribute('aria-hidden', 'false');
+      doc.documentElement.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
+    }
+
+    function close() {
+      if (!box.classList.contains('is-open')) return;
+      box.classList.remove('is-open');
+      box.setAttribute('aria-hidden', 'true');
+      doc.documentElement.style.overflow = '';
+      media.textContent = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    doc.addEventListener('click', function (e) {
+      var t = e.target;
+      if (closeBtn && (t === closeBtn || closeBtn.contains(t))) {
+        close();
+        return;
+      }
+      if (t === box) { close(); return; }
+      if (!t || !t.closest) return;
+
+      var trigger = t.closest('[data-lightbox]');
+      if (!trigger) return;
+
+      e.preventDefault();
+      var inner = trigger.querySelector('img, video');
+      var src = trigger.getAttribute('data-src') || (inner ? inner.getAttribute('src') : '');
+      var alt = trigger.getAttribute('data-alt') || (inner ? inner.getAttribute('alt') : '');
+      open(src, alt, trigger.getAttribute('data-type'));
+    });
+
+    doc.addEventListener('keydown', function (e) {
+      if (!box.classList.contains('is-open')) return;
+
+      if (e.key === 'Escape' || e.key === 'Esc') close();
+
+      if (e.key === 'Tab') {
+        var focusables = slice(box.querySelectorAll('button, [href], video, [tabindex]:not([tabindex="-1"])'));
+        if (focusables.length < 2) return;
+        var first = focusables[0];
+        var last = focusables[focusables.length - 1];
+
+        if (e.shiftKey && doc.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && doc.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Site behaviour (set up after the reveal so the hero
+     animates in as the curtain lifts)
+  --------------------------------------------------------- */
+  function initSite() {
+    initReveal();
+    initHero();
+
+    var driver = initScrollDriver();
+    initScrollFx(driver);
+
+    initFilters();
+    initLightbox();
   }
 
   /* ---------------------------------------------------------
