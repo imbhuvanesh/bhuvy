@@ -94,9 +94,7 @@
             <article class="card card--polaroid" data-reveal>
               <div class="card__polaroid">
                 <div class="card__photo">
-                  <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                  </span>
+
                   <h3 class="card__title">Web Development</h3>
                   <p class="card__desc">Websites and interfaces that make a strong first impression.</p>
                   <ul class="card__list">
@@ -112,9 +110,7 @@
             <article class="card card--polaroid" data-reveal data-reveal-delay="100">
               <div class="card__polaroid">
                 <div class="card__photo">
-                  <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.6"/><line x1="11" y1="18.4" x2="13" y2="18.4"/></svg>
-                  </span>
+
                   <h3 class="card__title">App Development</h3>
                   <p class="card__desc">Mobile experiences built to feel fast and effortless.</p>
                   <ul class="card__list">
@@ -129,9 +125,7 @@
             <article class="card card--polaroid" data-reveal data-reveal-delay="200">
               <div class="card__polaroid">
                 <div class="card__photo">
-                  <span class="card__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2.4"/></svg>
-                  </span>
+
                   <h3 class="card__title">Video Editing</h3>
                   <p class="card__desc">Footage shaped into stories people actually watch.</p>
                   <ul class="card__list">
@@ -164,145 +158,45 @@
             </p>
           </header>
 
-          <div class="filters" role="group" aria-label="Filter projects by category" data-reveal data-reveal-delay="300">
-            <button type="button" class="filter is-active" data-filter="all">All</button>
-            <button type="button" class="filter" data-filter="Featured Projects">Featured Projects</button>
-            <button type="button" class="filter" data-filter="Landing Pages">Landing Pages</button>
-          </div>
+          <div class="workshowcase" data-reveal data-reveal-delay="300">
+            <div class="workshowcase__tabs" role="tablist" aria-label="Switch between project categories">
+              <button type="button" class="workshowcase__tab is-active" role="tab" data-category="portfolios" aria-selected="true">Portfolios</button>
+              <button type="button" class="workshowcase__tab" role="tab" data-category="landing" aria-selected="false">Landing Pages</button>
+            </div>
 
-          <div class="works">
-            <article class="work work--wide" data-category="Featured Projects" data-reveal>
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Featured Projects</span>
-                <h3 class="work__title">Ones</h3>
-                <p class="work__desc">Interactive showcase built with clean, responsive layouts.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/Ones/" target="_blank" rel="noopener noreferrer">Live demo</a>
+            <div class="workshowcase__preview-container">
+              <div class="workshowcase__frame-wrapper">
+                <iframe 
+                  class="workshowcase__iframe"
+                  src="https://imbhuvanesh.github.io/Ones/"
+                  title="Live preview"
+                  loading="lazy"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals allow-top-navigation-by-user-activation">
+                </iframe>
+                <div class="workshowcase__fallback" hidden>
+                  <div class="workshowcase__fallback-content">
+                    <p>This site blocks iframe embedding</p>
+                    <a class="workshowcase__fallback-link" href="https://imbhuvanesh.github.io/Ones/" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
+                  </div>
                 </div>
               </div>
-            </article>
+            </div>
 
-            <article class="work" data-category="Featured Projects" data-reveal data-reveal-delay="100">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
+            <div class="workshowcase__nav">
+              <button type="button" class="workshowcase__nav-btn workshowcase__prev" aria-label="Previous project">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+              </button>
+              <div class="workshowcase__project-info">
+                <a class="workshowcase__project-name" href="https://imbhuvanesh.github.io/Ones/" target="_blank" rel="noopener noreferrer" title="Open this site in a new tab">Ones</a>
               </div>
-              <div class="work__body">
-                <span class="work__cat">Featured Projects</span>
-                <h3 class="work__title">Maddy</h3>
-                <p class="work__desc">Minimal portfolio with elegant motion and typography.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/Maddy/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="work" data-category="Featured Projects" data-reveal data-reveal-delay="200">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Featured Projects</span>
-                <h3 class="work__title">Bhuvanesh Portfolio</h3>
-                <p class="work__desc">Personal developer portfolio highlighting selected work.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/dev/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="work" data-category="Landing Pages" data-reveal data-reveal-delay="300">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Landing Pages</span>
-                <h3 class="work__title">IFIXON</h3>
-                <p class="work__desc">Modern business landing page with focused calls to action.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/ifixon/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="work" data-category="Landing Pages" data-reveal data-reveal-delay="400">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Landing Pages</span>
-                <h3 class="work__title">DIGI NEXUZ</h3>
-                <p class="work__desc">Digital services landing page with structured content.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/DG/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="work" data-category="Landing Pages" data-reveal data-reveal-delay="500">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Landing Pages</span>
-                <h3 class="work__title">Duck.app</h3>
-                <p class="work__desc">Product landing page with playful, minimal design.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/Duck.app/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
-
-            <article class="work" data-category="Landing Pages" data-reveal data-reveal-delay="600">
-              <div class="work__media">
-                <div class="work__ph">Add screenshot</div>
-              </div>
-              <div class="work__body">
-                <span class="work__cat">Landing Pages</span>
-                <h3 class="work__title">Blue Dangle</h3>
-                <p class="work__desc">Brand landing page with clean, elegant styling.</p>
-                <ul class="work__tags">
-                  <li class="tag">HTML</li>
-                  <li class="tag">CSS</li>
-                  <li class="tag">JS</li>
-                </ul>
-                <div class="work__links">
-                  <a class="work__link" href="https://imbhuvanesh.github.io/Bluedangle.in/" target="_blank" rel="noopener noreferrer">Live demo</a>
-                </div>
-              </div>
-            </article>
+              <button type="button" class="workshowcase__nav-btn workshowcase__next" aria-label="Next project">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </section>

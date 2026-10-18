@@ -172,26 +172,53 @@
 
   /* ---------------------------------------------------------
      Intro timeline: HELLO → greetings → HELLO
+     Paced to finish exactly when the background video does
+     (see applyVideoDuration) — the last HELLO locks in on the
+     video's final frame, then the curtain lifts.
   --------------------------------------------------------- */
   var GREETINGS = ['BONJOUR', 'HOLA', 'CIAO', 'NAMASTE', 'வணக்கம்', 'こんにちは'];
 
   function runIntro() {
-    var chain = Promise.resolve();
+    // HELLO + first hold + greetings + beat + final HELLO
+    var NATURAL = 900 + 350 + GREETINGS.length * (400 + 130) + 220 + 800;
 
-    // first resolve into HELLO
-    chain = chain
+    // spread the slack the video gives us across the holds so the
+    // whole timeline lands on INTRO_TARGET
+    function pace() {
+      var extra = Math.max(0, INTRO_TARGET - NATURAL);
+      return {
+        firstHold: 350 + extra * 0.25,
+        greetPause: 130 + (extra * 0.45) / GREETINGS.length,
+        preFinal: 220 + extra * 0.1,
+        finalHold: extra * 0.2
+      };
+    }
+
+    // first resolve into HELLO immediately; the pacing waits for the
+    // video's metadata so both timelines stay in lockstep
+    var chain = Promise.resolve()
       .then(function () { return scrambleTo('HELLO', 900); })
-      .then(function () { return wait(reducedMotion.matches ? 200 : 350); });
+      .then(function () { return durationReady; });
 
     if (!reducedMotion.matches) {
-      GREETINGS.forEach(function (word) {
-        chain = chain
-          .then(function () { return scrambleTo(word, 400); })
-          .then(function () { return wait(130); });
+      chain = chain.then(function () {
+        var p = pace();
+        var inner = Promise.resolve()
+          .then(function () { return wait(p.firstHold); });
+
+        GREETINGS.forEach(function (word) {
+          inner = inner
+            .then(function () { return scrambleTo(word, 400); })
+            .then(function () { return wait(p.greetPause); });
+        });
+
+        return inner
+          .then(function () { return wait(p.preFinal); })
+          .then(function () { return scrambleTo('HELLO', 800); })
+          .then(function () { return wait(p.finalHold); });
       });
-      chain = chain
-        .then(function () { return wait(220); })
-        .then(function () { return scrambleTo('HELLO', 800); });
+    } else {
+      chain = chain.then(function () { return wait(200); });
     }
 
     return chain.catch(function () {
@@ -207,8 +234,24 @@
   /* ---------------------------------------------------------
      Real loading progress (images + fonts), smoothed over time
   --------------------------------------------------------- */
-  var MIN_DURATION = 3800;   // preloader lives at least this long
-  var HARD_CAP = 6200;       // force resources "done" after this
+  // The preloader lives as long as the background video: exit fires on
+  // the video's final frame (the video pauses there while the curtain
+  // lifts). Fallbacks below are used until <video> metadata arrives.
+  var VIDEO_FALLBACK = 9.1;
+  var MIN_DURATION = VIDEO_FALLBACK * 1000; // preloader lives at least this long
+  var HARD_CAP = MIN_DURATION + 2500;       // force resources "done" after this
+  var INTRO_TARGET = MIN_DURATION - 250;    // last HELLO locks in just before exit
+
+  var markDurationReady;
+  var durationReady = new Promise(function (resolve) { markDurationReady = resolve; });
+
+  function applyVideoDuration(dur) {
+    if (!dur || !isFinite(dur) || dur <= 0) return;
+    MIN_DURATION = Math.round(dur * 1000);
+    HARD_CAP = MIN_DURATION + 2500;
+    INTRO_TARGET = MIN_DURATION - 250;
+    markDurationReady();
+  }
   var startTime = performance.now();
   var fontsReady = false;
   var windowLoaded = false;
@@ -611,6 +654,16 @@
     if (shownProgress >= 100) exit();
   });
 
+  // Sync the timeline to the video's real length (metadata may already
+  // be buffered); never let a slow/failed load block the intro.
+  if (preloaderVideo) {
+    if (preloaderVideo.readyState > 0) applyVideoDuration(preloaderVideo.duration);
+    on(preloaderVideo, 'loadedmetadata', function () {
+      applyVideoDuration(preloaderVideo.duration);
+    });
+  }
+  later(function () { markDurationReady(); }, 1500);
+
   // Try to play video (in case autoplay didn't trigger immediately)
   if (preloaderVideo) {
     preloaderVideo.muted = true;
@@ -625,4 +678,213 @@
 
   // absolute last resort — if anything above stalls, show the site
   later(function () { exit(); }, HARD_CAP + 2000);
+})();
+
+
+/* ==================== WORK SHOWCASE CAROUSEL ==================== */
+(function () {
+  'use strict';
+
+  var workShowcase = document.querySelector('.workshowcase');
+  if (!workShowcase) return;
+
+  var projects = {
+    portfolios: [
+      {
+        name: 'Ones',
+        url: 'https://imbhuvanesh.github.io/Ones/'
+      },
+      {
+        name: 'Maddy',
+        url: 'https://imbhuvanesh.github.io/Maddy/'
+      },
+      {
+        name: 'Dev Portfolio',
+        url: 'https://imbhuvanesh.github.io/dev/'
+      }
+    ],
+    landing: [
+      {
+        name: 'Sunflower',
+        url: 'https://imbhuvanesh.github.io/sunflower/'
+      },
+      {
+        name: 'Ifixon',
+        url: 'https://imbhuvanesh.github.io/ifixon/'
+      },
+      {
+        name: 'DG',
+        url: 'https://imbhuvanesh.github.io/DG/'
+      },
+      {
+        name: 'Duck.app',
+        url: 'https://imbhuvanesh.github.io/Duck.app/'
+      },
+      {
+        name: 'Bluedangle.in',
+        url: 'https://imbhuvanesh.github.io/Bluedangle.in/'
+      }
+    ]
+  };
+
+  var iframe = workShowcase.querySelector('.workshowcase__iframe');
+  var fallback = workShowcase.querySelector('.workshowcase__fallback');
+  var fallbackLink = workShowcase.querySelector('.workshowcase__fallback-link');
+  var projectName = workShowcase.querySelector('.workshowcase__project-name');
+  var prevBtn = workShowcase.querySelector('.workshowcase__prev');
+  var nextBtn = workShowcase.querySelector('.workshowcase__next');
+  var tabs = workShowcase.querySelectorAll('.workshowcase__tab');
+
+  var currentCategory = 'portfolios';
+  var currentIndex = 0;
+  var isTransitioning = false;
+  var xStart = 0;
+  var yStart = 0;
+
+  function getCurrentProjects() {
+    return projects[currentCategory] || [];
+  }
+
+  function updateButtons() {
+    var currentProjects = getCurrentProjects();
+    if (prevBtn) prevBtn.disabled = currentIndex === 0;
+    if (nextBtn) nextBtn.disabled = currentIndex === currentProjects.length - 1;
+  }
+
+  function showFallback(url) {
+    if (iframe) {
+      iframe.classList.add('is-hidden');
+    }
+    if (fallback && fallbackLink) {
+      fallbackLink.href = url;
+      fallback.hidden = false;
+    }
+  }
+
+  function hideFallback() {
+    if (fallback) {
+      fallback.hidden = true;
+    }
+    if (iframe) {
+      iframe.classList.remove('is-hidden');
+    }
+  }
+
+  function loadProject(index, animate) {
+    var currentProjects = getCurrentProjects();
+    if (index < 0 || index >= currentProjects.length) return;
+    if (isTransitioning) return;
+
+    currentIndex = index;
+    var project = currentProjects[currentIndex];
+
+    if (projectName) {
+      projectName.textContent = project.name;
+      if (projectName.tagName === 'A') {
+        projectName.href = project.url;
+      }
+    }
+
+    if (animate && iframe) {
+      iframe.classList.add('is-fading');
+      isTransitioning = true;
+
+      setTimeout(function () {
+        hideFallback();
+        iframe.src = project.url;
+        iframe.title = 'Live preview of ' + project.name;
+        if (fallbackLink) fallbackLink.href = project.url;
+
+        setTimeout(function () {
+          iframe.classList.remove('is-fading');
+          isTransitioning = false;
+        }, 50);
+      }, 250);
+    } else {
+      hideFallback();
+      if (iframe) {
+        iframe.src = project.url;
+        iframe.title = 'Live preview of ' + project.name;
+      }
+      if (fallbackLink) fallbackLink.href = project.url;
+    }
+
+    updateButtons();
+  }
+
+  function switchCategory(category) {
+    if (currentCategory === category) return;
+    currentCategory = category;
+    currentIndex = 0;
+    loadProject(0, true);
+
+    tabs.forEach(function (tab) {
+      var isActive = tab.getAttribute('data-category') === category;
+      tab.classList.toggle('is-active', isActive);
+      tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+  }
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', function () {
+      loadProject(currentIndex - 1, true);
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', function () {
+      loadProject(currentIndex + 1, true);
+    });
+  }
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      switchCategory(tab.getAttribute('data-category'));
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (!workShowcase.matches(':hover') && !workShowcase.contains(document.activeElement)) {
+      return;
+    }
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      loadProject(currentIndex - 1, true);
+    }
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      loadProject(currentIndex + 1, true);
+    }
+  });
+
+  if (iframe) {
+    iframe.addEventListener('load', function () {
+    });
+
+    iframe.addEventListener('error', function () {
+      showFallback(iframe.src);
+    });
+  }
+
+  workShowcase.addEventListener('touchstart', function (e) {
+    var touch = e.changedTouches[0];
+    xStart = touch.screenX;
+    yStart = touch.screenY;
+  }, { passive: true });
+
+  workShowcase.addEventListener('touchend', function (e) {
+    var touch = e.changedTouches[0];
+    var xDiff = touch.screenX - xStart;
+    var yDiff = touch.screenY - yStart;
+
+    if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
+      if (xDiff > 0) {
+        loadProject(currentIndex - 1, true);
+      } else {
+        loadProject(currentIndex + 1, true);
+      }
+    }
+  }, { passive: true });
+
+  loadProject(0, false);
 })();
