@@ -316,114 +316,6 @@
   }
 
   /* ---------------------------------------------------------
-     Hero: each word reveals letter by letter, holds, then
-     blurs away so the next word can take over — forever.
-  --------------------------------------------------------- */
-  var HERO_WORDS = ['BHUVANESH', 'DEVELOPER', 'EDITOR'];
-
-  // timing for one word's turn
-  var CHAR_STAGGER = 45;   // per-letter delay inside the reveal
-  var WORD_IN = 720;       // one letter's reveal
-  var WORD_HOLD = 1300;    // sit readable on screen
-  var WORD_OUT = 600;      // blur + fade away
-  var WORD_GAP = 160;      // beat of empty screen between words
-
-  function initHero() {
-    var cycle = doc.getElementById('heroCycle');
-    if (!cycle) return;
-
-    cycle.textContent = '';
-
-    // every word lives in the same grid cell so the swap never reflows
-    var words = HERO_WORDS.map(function (word) {
-      var el = doc.createElement('span');
-      el.className = 'hero__word';
-
-      // one span per letter so the reveal can stagger through them
-      for (var i = 0; i < word.length; i++) {
-        var ch = doc.createElement('span');
-        ch.className = 'hero__char';
-        ch.style.setProperty('--i', String(i));
-        ch.textContent = word.charAt(i);
-        el.appendChild(ch);
-      }
-
-      cycle.appendChild(el);
-      return el;
-    });
-
-    // reduced motion: pin the first word, no loop
-    if (reducedMotion.matches) {
-      words[0].style.opacity = '1';
-      return;
-    }
-
-    var hero = doc.getElementById('hero');
-    var timer = null;
-    var current = 0;
-
-    function clearTimer() {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-    }
-
-    function hide(el) {
-      el.classList.remove('is-active', 'is-out');
-    }
-
-    function show(i) {
-      var el = words[i];
-      current = i;
-      el.classList.add('is-active');
-
-      // reveal finished once the last letter has played
-      var reveal = WORD_IN + CHAR_STAGGER * (el.children.length - 1);
-
-      timer = setTimeout(function () {
-        el.classList.add('is-out');
-
-        timer = setTimeout(function () {
-          hide(el);
-          timer = setTimeout(function () {
-            show((i + 1) % words.length);
-          }, WORD_GAP);
-        }, WORD_OUT);
-      }, reveal + WORD_HOLD);
-    }
-
-    // deliberately raw: the animation must outlive the preloader's
-    // cleanup(), and it pauses itself while the hero is off screen
-    if (hero && 'IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (entries) {
-        var entry = entries[0];
-        if (!entry) return;
-
-        if (entry.isIntersecting) {
-          clearTimer();
-          words.forEach(hide);
-          show(current);
-        } else {
-          clearTimer();
-          words.forEach(hide);
-        }
-      });
-      io.observe(hero);
-    }
-
-    // pause the loop while the cursor rests on the words
-    cycle.addEventListener('mouseenter', function () {
-      clearTimer();
-    });
-    cycle.addEventListener('mouseleave', function () {
-      show(current);
-    });
-
-    show(0);
-  }
-
-  /* ---------------------------------------------------------
      Small helpers
   --------------------------------------------------------- */
   function slice(list) {
@@ -507,14 +399,9 @@
     var inners = chapters.map(function (c) { return c.firstElementChild; });
     var bgImg = doc.querySelector('.chapters__bg-img');
     var chaptersWrap = doc.querySelector('.chapters');
-    var processEl = doc.querySelector('.process');
 
     driver.add(function (vh) {
-      if (reducedMotion.matches) {
-        // no motion: show the process timeline as a finished line
-        if (processEl) processEl.style.setProperty('--fill', '1');
-        return;
-      }
+      if (reducedMotion.matches) return;
 
       // zoom each section as it travels through the viewport
       for (var i = 0; i < chapters.length; i++) {
@@ -537,13 +424,6 @@
         inner.style.opacity = (1 - fade).toFixed(3);
         inner.style.transform = 'scale(' + scale.toFixed(3) + ')';
         inner.style.filter = fade > 0.02 ? 'blur(' + (fade * 7).toFixed(2) + 'px)' : 'none';
-      }
-
-      // process timeline fills as the section travels through view
-      if (processEl) {
-        var pr = processEl.getBoundingClientRect();
-        var fill = clamp01(1 - (pr.top + pr.height / 2 - vh / 2) / (vh * 0.85));
-        processEl.style.setProperty('--fill', fill.toFixed(3));
       }
 
       // slow parallax on the shared background photo
@@ -669,18 +549,48 @@
   }
 
   /* ---------------------------------------------------------
-     Site behaviour (set up after the reveal so the hero
-     animates in as the curtain lifts)
+     Poster marquee: the tile set is cloned once so the
+     right-to-left loop can translate -50% seamlessly
+  --------------------------------------------------------- */
+  function initMarquee() {
+    var gallery = doc.querySelector('.gallery[data-marquee]');
+    if (!gallery) return;
+
+    var track = gallery.querySelector('.gallery__track');
+    if (!track) return;
+
+    var originals = slice(track.children);
+    for (var i = 0; i < originals.length; i++) {
+      var clone = originals[i].cloneNode(true);
+
+      // the duplicate is decoration: hidden from assistive tech
+      // and out of the tab order, but still clickable
+      clone.setAttribute('aria-hidden', 'true');
+      if (clone.tagName === 'BUTTON') {
+        clone.setAttribute('tabindex', '-1');
+      }
+      var focusable = clone.querySelectorAll('button, a, [tabindex]');
+      for (var f = 0; f < focusable.length; f++) {
+        focusable[f].setAttribute('tabindex', '-1');
+      }
+
+      track.appendChild(clone);
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Site behaviour (set up after the reveal so the curtain
+     lifts first)
   --------------------------------------------------------- */
   function initSite() {
     initReveal();
-    initHero();
 
     var driver = initScrollDriver();
     initScrollFx(driver);
 
     initFilters();
     initLightbox();
+    initMarquee();
   }
 
   /* ---------------------------------------------------------
