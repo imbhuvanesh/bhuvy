@@ -538,20 +538,23 @@ em { font-style: normal; color: inherit; }
 
 .card__list li {
   position: relative;
-  padding-left: 1.1rem;
+  padding-left: 1.25rem;
   font-size: 0.9rem;
   line-height: 1.9;
   color: rgba(242, 240, 234, 0.86);
 }
 
+/* the bullet is a star rather than a hyphen */
 .card__list li::before {
-  content: '';
+  content: '★';
   position: absolute;
   left: 0;
-  top: 0.85em;
-  width: 7px;
-  height: 1px;
-  background: var(--accent);
+  top: 0;
+  color: var(--accent);
+  font-size: 0.7rem;
+  line-height: 1.9;
+  /* match the list's own line metrics so the star sits on the first line */
+  font-family: inherit;
 }
 
 .cards--polaroid { gap: clamp(1.4rem, 2.8vw, 2.2rem); }
@@ -1453,6 +1456,7 @@ a.workshowcase__project-name:focus-visible {
 .footer {
   position: relative;
   z-index: 2;
+  overflow: hidden;
   /* footer.jpg with a dark scrim so the links stay legible */
   background:
     linear-gradient(rgba(10, 10, 11, 0.78), rgba(10, 10, 11, 0.88)),
@@ -1461,7 +1465,34 @@ a.workshowcase__project-name:focus-visible {
   padding: clamp(1.1rem, 3vw, 1.75rem) var(--pad);
 }
 
+/* --- flower image trail ---
+   The layer is clipped to the footer, so the flowers never escape it.
+   Images are absolutely positioned and revealed as the cursor travels. */
+.footer__trail {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.footer__image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(70px, 9vw, 130px);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  opacity: 0;
+  will-change: transform, opacity;
+  pointer-events: none;
+  /* soft edge so the cut-out flowers sit nicely on the photo */
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+
 .footer__inner {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
@@ -1687,6 +1718,57 @@ body.is-revealed .site { opacity: 1; }
   opacity: 1 !important;
   transform: none !important;
   filter: none !important;
+}
+
+/* ============================================================
+   INLINE HIGHLIGHT — yellow sweep behind key phrases
+   A pseudo bar wipes in from the left behind the words, in the
+   brand yellow, with bold black text on top. Triggered by the
+   parent [data-reveal] gaining .is-visible.
+   ============================================================ */
+.hl {
+  position: relative;
+  display: inline;
+  font-weight: 700;
+  color: var(--fg);
+  /* a little breathing room for the sweep on both ends */
+  padding: 0 0.18em;
+  border-radius: 3px;
+  /* the yellow bar grows from the left; the colour flips at the end */
+  background-image: linear-gradient(var(--yellow, #ffdd00), var(--yellow, #ffdd00));
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: 0% 100%;
+  transition:
+    background-size 0.55s var(--ease-out) var(--hl-d, 0ms),
+    color 0.25s var(--ease-out) var(--hl-d, 0ms),
+    padding 0.35s var(--ease-out) var(--hl-d, 0ms);
+  /* box-decoration-break keeps the bar intact when a phrase wraps */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* the bar stays slightly inset so it reads as a marker stroke */
+.is-visible > .hl,
+.is-visible .hl,
+.hl.is-visible {
+  background-size: 100% 100%;
+  color: #0a0a0b;
+  padding: 0.04em 0.24em;
+}
+
+/* stagger several highlights inside one paragraph */
+[data-reveal].is-visible .hl:nth-of-type(1) { --hl-d: 260ms; }
+[data-reveal].is-visible .hl:nth-of-type(2) { --hl-d: 480ms; }
+[data-reveal].is-visible .hl:nth-of-type(3) { --hl-d: 700ms; }
+
+/* reduced motion: land on the finished state, no sweep */
+@media (prefers-reduced-motion: reduce) {
+  .hl {
+    background-size: 100% 100%;
+    color: #0a0a0b;
+    padding: 0.04em 0.24em;
+  }
 }
 
 

@@ -648,6 +648,103 @@
   }
 
   /* ---------------------------------------------------------
+     Footer flower trail — as the cursor travels across the footer,
+     flower images are stamped along its path, pushed by the cursor
+     direction, and shrunk away. Coordinates are footer-relative and
+     the layer is clipped, so nothing escapes the footer.
+  --------------------------------------------------------- */
+  function initFooterTrail() {
+    var footer = doc.getElementById('footer');
+    var trail = doc.getElementById('footerTrail');
+    if (!footer || !trail) return;
+
+    var gsap = window.gsap;
+    if (!gsap || reducedMotion.matches) return;
+
+    var images = slice(trail.querySelectorAll('.footer__image'));
+    if (!images.length) return;
+
+    var GAP = 60;          // travel distance before the next flower spawns
+    var index = 0;
+    var wrap = gsap.utils.wrap(0, images.length);
+
+    var mousePos = { x: 0, y: 0 };
+    var lastMousePos = { x: 0, y: 0 };
+    var cachedPos = { x: 0, y: 0 };
+    var isOver = false;
+
+    function toFooterSpace(e) {
+      var rect = footer.getBoundingClientRect();
+      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    }
+
+    footer.addEventListener('pointerenter', function (e) {
+      var p = toFooterSpace(e);
+      lastMousePos = { x: p.x, y: p.y };
+      mousePos = { x: p.x, y: p.y };
+      cachedPos = { x: p.x, y: p.y };
+      isOver = true;
+    }, { passive: true });
+
+    footer.addEventListener('pointermove', function (e) {
+      var p = toFooterSpace(e);
+      mousePos = { x: p.x, y: p.y };
+      isOver = true;
+    }, { passive: true });
+
+    footer.addEventListener('pointerleave', function () {
+      isOver = false;
+    }, { passive: true });
+
+    function animateImage() {
+      var img = images[wrap(index)];
+      var deltaX = mousePos.x - lastMousePos.x;
+      var deltaY = mousePos.y - lastMousePos.y;
+
+      gsap.killTweensOf(img);
+      gsap.set(img, { clearProps: 'all' });
+      gsap.set(img, {
+        rotation: 'random(-20,20)',
+        left: mousePos.x,
+        top: mousePos.y,
+        xPercent: -50,
+        yPercent: -50
+      });
+
+      gsap
+        .timeline()
+        .to(img, { opacity: 1, duration: 0.2 })
+        .to(img, {
+          x: '+=' + deltaX,
+          y: '+=' + deltaY,
+          ease: 'power4.out',
+          duration: 1
+        }, '<')
+        .to(img, {
+          scale: 0,
+          ease: 'expo.in',
+          duration: 1
+        });
+
+      index++;
+    }
+
+    gsap.ticker.add(function trailTick() {
+      if (!isOver) return;
+
+      var travelDistance = Math.hypot(lastMousePos.x - mousePos.x, lastMousePos.y - mousePos.y);
+
+      cachedPos.x = gsap.utils.interpolate(cachedPos.x || mousePos.x, mousePos.x, 0.1);
+      cachedPos.y = gsap.utils.interpolate(cachedPos.y || mousePos.y, mousePos.y, 0.1);
+
+      if (travelDistance > GAP) {
+        animateImage();
+        lastMousePos = { x: mousePos.x, y: mousePos.y };
+      }
+    });
+  }
+
+  /* ---------------------------------------------------------
      Site behaviour (set up after the reveal so the curtain
      lifts first)
   --------------------------------------------------------- */
@@ -661,6 +758,7 @@
     initLightbox();
     initMarquee();
     initSplitText();
+    initFooterTrail();
   }
 
   /* ---------------------------------------------------------
