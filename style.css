@@ -1453,7 +1453,10 @@ a.workshowcase__project-name:focus-visible {
 .footer {
   position: relative;
   z-index: 2;
-  background: #000;
+  /* footer.jpg with a dark scrim so the links stay legible */
+  background:
+    linear-gradient(rgba(10, 10, 11, 0.78), rgba(10, 10, 11, 0.88)),
+    url('photos/footer.jpg') center / cover no-repeat #000;
   border-top: 1px solid var(--line);
   padding: clamp(1.1rem, 3vw, 1.75rem) var(--pad);
 }
