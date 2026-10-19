@@ -2,6 +2,9 @@
    BHUVY — preloader only (base + tokens ready for content)
    ============================================================ */
 
+/* Footer social links use Mona Sans (variable width + weight) */
+@import url("https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap");
+
 /* ---------- Fonts ---------- */
 @font-face {
   font-family: 'Google Sans';
@@ -66,9 +69,27 @@
   --line: rgba(242, 240, 234, 0.13);
   --accent: #f2f0ea; /* red removed — accent is now white */
   --green: #3ddc84;
+
+  /* social brand colours (footer links) */
+  --github: #3ddc84;
+  --instagram: #e1306c;
+  --coffee: #ffdd00;
+
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-cine: cubic-bezier(0.76, 0, 0.24, 1);
   --pad: clamp(1.25rem, 4vw, 4rem);
+
+  /* shared layout containers + viewport-unit shorthands.
+     --vh is the small viewport height (no mobile browser chrome);
+     --dvh is the dynamic one (grows/shrinks with the toolbar). */
+  --maxw: 1180px;
+  --vh: 100svh;
+  --dvh: 100dvh;
+}
+
+/* progressive enhancement: browsers without dvh keep the svh value */
+@supports (height: 100dvh) {
+  :root { --dvh: 100dvh; }
 }
 
 /* ---------- Reset / base ---------- */
@@ -123,6 +144,8 @@ em { font-style: normal; color: inherit; }
 .preloader {
   position: fixed;
   inset: 0;
+  height: 100vh;
+  height: var(--dvh);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -179,11 +202,14 @@ em { font-style: normal; color: inherit; }
   align-items: baseline;
   gap: 0.09em;
   font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
-  font-size: clamp(2.6rem, 12vw, 9rem);
+  font-size: clamp(2.1rem, 11.5vw, 9rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: 0.02em;
   min-height: 1em;
+  /* the longest greeting must fit between the gutters on any phone */
+  max-width: 100%;
+  flex-wrap: nowrap;
 }
 
 .preloader__char {
@@ -232,7 +258,7 @@ em { font-style: normal; color: inherit; }
   top: 0;
   z-index: 0;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: var(--vh);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -303,18 +329,21 @@ em { font-style: normal; color: inherit; }
 .hero__cycle {
   display: grid;
   place-items: center;
+  width: 100%;
   /* reserve the headline height so the reveal never causes a layout shift */
-  min-height: calc(clamp(2.9rem, 11.5vw, 8.5rem) * 1.1);
+  min-height: calc(clamp(2.4rem, 11vw, 8.5rem) * 1.1);
 }
 
 .hero__word {
   grid-area: 1 / 1;
   font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
-  font-size: clamp(2.9rem, 11.5vw, 8.5rem);
+  font-size: clamp(2.4rem, 11vw, 8.5rem);
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  /* shrink the wordmark rather than letting it spill past the gutters */
+  max-width: 100%;
 }
 
 
@@ -357,9 +386,9 @@ em { font-style: normal; color: inherit; }
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: var(--vh);
   margin-bottom: -100vh;
-  margin-bottom: -100svh;
+  margin-bottom: calc(var(--vh) * -1);
   overflow: hidden;
   z-index: 0;
   pointer-events: none;
@@ -391,7 +420,7 @@ em { font-style: normal; color: inherit; }
   position: relative;
   z-index: 1;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: var(--vh);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -400,7 +429,7 @@ em { font-style: normal; color: inherit; }
 
 .chapter__inner {
   width: 100%;
-  max-width: 1180px;
+  max-width: var(--maxw);
   margin: 0 auto;
   will-change: transform, opacity, filter;
 }
@@ -451,9 +480,18 @@ em { font-style: normal; color: inherit; }
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
 }
 
+@media (max-width: 1024px) {
+  .about { grid-template-columns: minmax(200px, 380px) 1fr; }
+}
+
 @media (max-width: 860px) {
-  .about { grid-template-columns: 1fr; }
+  .about { grid-template-columns: 1fr; gap: clamp(1.5rem, 5vw, 2.25rem); }
   .about__media { max-width: 340px; }
+}
+
+@media (max-width: 480px) {
+  .about__media { max-width: 260px; }
+  .chapter__inner { padding-inline: 0; }
 }
 
 /* --- Cards (services) --- */
@@ -461,6 +499,18 @@ em { font-style: normal; color: inherit; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: clamp(1rem, 2.2vw, 1.6rem);
+}
+
+/* tablet: two across */
+@media (max-width: 1024px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* phones: one card per row so the copy stays readable */
+@media (max-width: 700px) {
+  .cards { grid-template-columns: 1fr; }
+  .cards--polaroid { gap: clamp(1.75rem, 6vw, 2.5rem); }
+  .card--polaroid { max-width: 420px; margin-inline: auto; width: 100%; }
 }
 
 .card {
@@ -533,6 +583,15 @@ em { font-style: normal; color: inherit; }
 .card--polaroid:nth-child(1)::before { --tape: -4deg; }
 .card--polaroid:nth-child(2)::before { --tape: 3deg; }
 .card--polaroid:nth-child(3)::before { --tape: -2deg; }
+
+/* on small screens the cards sit one-per-row — flatten the tilt/tape
+   so nothing overlaps its neighbour */
+@media (max-width: 700px) {
+  .card--polaroid::before { --tape: 0deg; height: 18px; }
+  .card--polaroid:nth-child(1) .card__polaroid { --hang: 0deg; --r: 0deg; }
+  .card--polaroid:nth-child(2) .card__polaroid { --hang: 0deg; --r: 0deg; }
+  .card--polaroid:nth-child(3) .card__polaroid { --hang: 0deg; --r: 0deg; }
+}
 
 .card--polaroid .card__polaroid {
   position: relative;
@@ -818,6 +877,14 @@ em { font-style: normal; color: inherit; }
   text-transform: uppercase;
 }
 
+/* phones: stop the tiles from towering over the viewport */
+@media (max-width: 700px) {
+  .tile {
+    width: clamp(150px, 44vw, 220px);
+    height: clamp(210px, 60vw, 300px);
+  }
+}
+
 /* --- Skills: skillicons grouped by discipline --- */
 .skill-groups {
   display: flex;
@@ -846,7 +913,7 @@ em { font-style: normal; color: inherit; }
 
 .skill-icon {
   display: block;
-  height: 52px;
+  height: clamp(40px, 6vw, 52px);
   width: auto;
   transition: transform 0.3s var(--ease-out);
 }
@@ -1165,6 +1232,45 @@ a.workshowcase__project-name:focus-visible {
   }
 }
 
+/* small phones: taller preview frame so the embedded page stays usable,
+   tabs share the row instead of overflowing */
+@media (max-width: 480px) {
+  .workshowcase {
+    gap: clamp(1rem, 5vw, 1.5rem);
+  }
+
+  .workshowcase__preview-container {
+    max-width: 100%;
+  }
+
+  .workshowcase__frame-wrapper {
+    aspect-ratio: 3 / 4;
+    border-radius: 1rem;
+  }
+
+  .workshowcase__tabs {
+    width: 100%;
+    gap: 0.35rem;
+  }
+
+  .workshowcase__tab {
+    flex: 1 1 auto;
+    padding-inline: 0.75rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+  }
+
+  .workshowcase__nav {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .workshowcase__project-name {
+    max-width: min(46vw, 200px);
+    font-size: 1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .workshowcase__frame-wrapper,
   .workshowcase__iframe,
@@ -1195,7 +1301,7 @@ a.workshowcase__project-name:focus-visible {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 210px;
+  min-height: min(210px, 45vw);
   padding: clamp(1rem, 2vw, 1.4rem) clamp(0.9rem, 1.8vw, 1.2rem);
   background: #141417;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 14px 30px rgba(0, 0, 0, 0.5);
@@ -1230,6 +1336,14 @@ a.workshowcase__project-name:focus-visible {
   .process__grid { grid-template-columns: repeat(4, 1fr); }
 }
 
+/* on a single column the pegged polaroids hang perfectly straight */
+@media (max-width: 700px) {
+  .stage:nth-child(1) .stage__card,
+  .stage:nth-child(2) .stage__card,
+  .stage:nth-child(3) .stage__card,
+  .stage:nth-child(4) .stage__card { --hang: 0deg; }
+}
+
 /* --- Contact --- */
 .contact {
   max-width: 780px;
@@ -1237,43 +1351,199 @@ a.workshowcase__project-name:focus-visible {
   text-align: center;
 }
 
-.contact .chapter__title { font-size: clamp(2.6rem, 8vw, 5rem); }
+.contact .chapter__title { font-size: clamp(2.1rem, 8vw, 5rem); }
 .contact .chapter__text { max-width: 56ch; margin-left: auto; margin-right: auto; }
 
 .contact__actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
+  gap: clamp(0.6rem, 1.6vw, 0.9rem);
   margin-top: clamp(1.5rem, 3vw, 2.25rem);
 }
 
+/* keep the action pills inside the gutters on the narrowest phones */
+@media (max-width: 480px) {
+  .contact__actions { flex-direction: column; align-items: stretch; }
+  .contact__actions .btn { justify-content: center; }
+}
+
+@media (max-width: 420px) {
+  .btn {
+    padding: 0.8rem 1.35rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
 .btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.95rem 1.9rem;
+  /* starts transparent — the fill below is what colours it */
+  background: transparent;
   border: 1px solid var(--line);
   border-radius: 999px;
   color: var(--fg);
   font-size: 0.8rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  transition: transform 0.45s var(--ease-out), border-color 0.35s var(--ease-out), background 0.35s var(--ease-out), color 0.35s var(--ease-out), filter 0.35s var(--ease-out);
+  transition: transform 0.45s var(--ease-out), border-color 0.35s var(--ease-out), color 0.35s var(--ease-out);
+}
+
+/* the fill that sweeps up from the bottom edge on hover */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--accent);
+  transform: translateY(101%);
+  transition: transform 0.5s var(--ease-cine);
+  pointer-events: none;
+}
+
+.btn:hover::before,
+.btn:focus-visible::before {
+  transform: translateY(0);
+}
+
+/* label + icon ride above the fill */
+.btn > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* both variants fill with the same accent colour; text flips dark to stay readable */
+.btn:hover,
+.btn:focus-visible {
+  color: #0a0a0b;
+  border-color: var(--accent);
+  transform: translateY(-3px);
 }
 
 .btn--accent {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #0a0a0b;
+  background: transparent;
+  border-color: var(--line);
+  color: var(--fg);
 }
 
-.btn:hover { transform: translateY(-3px); }
-.btn--accent:hover { filter: brightness(1.08); }
-.btn--todo { cursor: not-allowed; opacity: 0.9; }
+.btn__icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: 0 0 auto;
+}
 
 .contact__closing {
   margin-top: clamp(1.5rem, 3vw, 2.25rem);
   font-size: clamp(1.05rem, 2vw, 1.35rem);
   color: rgba(242, 240, 234, 0.9);
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  position: relative;
+  z-index: 2;
+  background: #000;
+  border-top: 1px solid var(--line);
+  padding: clamp(1.1rem, 3vw, 1.75rem) var(--pad);
+}
+
+.footer__inner {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.5rem, 1.4vw, 0.85rem);
+  text-align: center;
+}
+
+.footer__follow {
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* --- character-lift social links (GSAP SplitText) --- */
+.footer__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* each link gets its own breathing room without stretching the footer */
+  gap: clamp(0.6rem, 1.6vw, 1rem);
+}
+
+.footer__split {
+  display: flex;
+  /* --link drives both the visible label and the duplicate painted
+     by text-shadow, so the colour swap covers the whole roll effect */
+  --link: #f4f4ed;
+  color: var(--link);
+  font-family: 'Mona Sans', sans-serif;
+  font-optical-sizing: auto;
+  /* compact footer scale — the reference uses 2rem */
+  font-size: clamp(0.72rem, 1vw, 0.85rem);
+  font-style: normal;
+  font-variation-settings: 'wdth' var(--font-width, 77);
+  font-weight: 900;
+  line-height: 0.9;
+  /* the crop box for the lift effect needs a touch of room either side */
+  padding-block: 0.12em;
+  overflow: hidden;
+  text-decoration: none;
+  /* paints a duplicate one line below; hidden until the label lifts */
+  text-shadow: 0 1em 0 var(--link);
+  text-transform: uppercase;
+  transition: color 0.3s var(--ease-out);
+}
+
+/* --- brand colours, revealed on interaction --- */
+.footer__split--github { --brand: var(--github); }
+.footer__split--instagram { --brand: var(--instagram); }
+
+.footer__split:hover,
+.footer__split:focus-visible {
+  --link: var(--brand);
+}
+
+/* Buy Me a Coffee's brand yellow is too dark on black — lift it */
+.footer__split--coffee {
+  --brand: var(--coffee);
+}
+
+/* the label is the split target — chars get translated up on hover */
+.footer__label {
+  display: flex;
+}
+
+.footer__label span {
+  /* --i is set by SplitText's propIndex, with a sibling-index() upgrade */
+  --i: var(--char);
+  text-box: trim-both cap alphabetic;
+  transition: 300ms translate cubic-bezier(0.2, 0, 0.5, 1);
+  translate: 0;
+  transition-delay: calc(40ms + var(--i, 0) * 20ms);
+}
+
+@supports (flex-grow: sibling-index()) {
+  .footer__label span { --i: sibling-index(); }
+}
+
+.footer__split:hover .footer__label span,
+.footer__split:focus-visible .footer__label span {
+  translate: 0 -1em;
 }
 
 
@@ -1283,6 +1553,8 @@ a.workshowcase__project-name:focus-visible {
 .lightbox {
   position: fixed;
   inset: 0;
+  height: 100vh;
+  height: var(--dvh);
   z-index: 900;
   display: grid;
   place-items: center;
@@ -1304,6 +1576,7 @@ a.workshowcase__project-name:focus-visible {
 .lightbox__media {
   max-width: min(1100px, 92vw);
   max-height: 82vh;
+  max-height: calc(var(--dvh) * 0.82);
   transform: scale(0.94);
   transition: transform 0.5s var(--ease-out);
 }
@@ -1315,6 +1588,7 @@ a.workshowcase__project-name:focus-visible {
   display: block;
   max-width: 100%;
   max-height: 82vh;
+  max-height: calc(var(--dvh) * 0.82);
   border-radius: 14px;
 }
 
@@ -1337,6 +1611,27 @@ a.workshowcase__project-name:focus-visible {
 .lightbox__close svg { width: 18px; height: 18px; }
 .lightbox__close:hover,
 .lightbox__close:focus-visible { transform: rotate(90deg); border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   VERY SMALL SCREENS (≤ 400px) — last pass
+   ============================================================ */
+@media (max-width: 400px) {
+  :root { --pad: 1.1rem; }
+
+  .preloader__word { font-size: clamp(1.7rem, 11vw, 3rem); }
+
+  .hero { padding: calc(var(--pad) + 1.25rem) var(--pad); }
+  .hero__word { font-size: clamp(2rem, 11vw, 3rem); }
+  .hero__cycle { min-height: calc(clamp(2rem, 11vw, 3rem) * 1.1); }
+
+  .chapter__title { font-size: clamp(1.75rem, 8vw, 2.4rem); }
+  .contact .chapter__title { font-size: clamp(1.9rem, 9vw, 2.6rem); }
+
+  .card--polaroid .card__photo { padding: 1rem; }
+  .card__title { font-size: 1.15rem; }
+
+  .skill-icon { height: clamp(34px, 9vw, 42px); }
+}
 
 /* ============================================================
    SITE REVEAL

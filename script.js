@@ -622,6 +622,32 @@
   }
 
   /* ---------------------------------------------------------
+     Footer social links: split each label into characters so
+     the CSS lift-on-hover gets a per-char stagger. Falls back
+     gracefully when GSAP/SplitText or motion preference says no.
+  --------------------------------------------------------- */
+  function initSplitText() {
+    var labels = slice(doc.querySelectorAll('.footer__label'));
+    if (!labels.length) return;
+
+    var gsap = window.gsap;
+    var SplitText = window.SplitText;
+
+    // no library, or the user prefers less motion: leave the plain labels
+    if (reducedMotion.matches || !gsap || !SplitText) return;
+
+    try {
+      new SplitText(labels, {
+        type: 'chars',
+        tag: 'span',
+        propIndex: true
+      });
+    } catch (e) {
+      // any failure just leaves the unsplit labels in place
+    }
+  }
+
+  /* ---------------------------------------------------------
      Site behaviour (set up after the reveal so the curtain
      lifts first)
   --------------------------------------------------------- */
@@ -634,6 +660,7 @@
     initFilters();
     initLightbox();
     initMarquee();
+    initSplitText();
   }
 
   /* ---------------------------------------------------------
