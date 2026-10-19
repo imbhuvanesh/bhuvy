@@ -34,16 +34,20 @@
     <!-- ============ STACKED CARDS — the hero pins while the About card slides over it ============ -->
     <div class="stack">
     <section class="hero" id="hero">
-      <div class="hero__bg" aria-hidden="true">
-        <img src="photos/hero bg.png" alt="" class="hero__bg-img">
-      </div>
-      <div class="hero__scrim" aria-hidden="true"></div>
+      <!-- the scene tilts as one in 3D; each layer sits at its own depth
+           (translateZ) so the near copy swings further than the far photo -->
+      <div class="hero__scene">
+        <div class="hero__bg" aria-hidden="true">
+          <img src="photos/hero bg.png" alt="" class="hero__bg-img">
+        </div>
 
-      <div class="hero__inner">
-        <h1 class="hero__title" data-reveal data-reveal-delay="0">
-          <span class="sr-only">Bhuvanesh — Developer &amp; Video Editor</span>
-          <span class="hero__cycle" id="heroCycle" aria-hidden="true"><span class="hero__word">BHUVANESH</span></span>
-        </h1>
+        <div class="hero__inner">
+          <h1 class="hero__title" data-reveal data-reveal-delay="0">
+            <span class="sr-only">Bhuvanesh — Developer &amp; Video Editor</span>
+            <span class="hero__cycle" id="heroCycle" aria-hidden="true"><span class="hero__word">BHUVANESH</span></span>
+          </h1>
+          <p class="hero__tagline" data-reveal data-reveal-delay="200">Learning and growing everyday!</p>
+        </div>
       </div>
     </section>
 
@@ -168,7 +172,7 @@
               <div class="workshowcase__frame-wrapper">
                 <iframe 
                   class="workshowcase__iframe"
-                  src="https://imbhuvanesh.github.io/Ones/"
+                  src="https://imbhuvanesh.github.io/Maddy/"
                   title="Live preview"
                   loading="lazy"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals allow-top-navigation-by-user-activation">
@@ -176,7 +180,7 @@
                 <div class="workshowcase__fallback" hidden>
                   <div class="workshowcase__fallback-content">
                     <p>This site blocks iframe embedding</p>
-                    <a class="workshowcase__fallback-link" href="https://imbhuvanesh.github.io/Ones/" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
+                    <a class="workshowcase__fallback-link" href="https://imbhuvanesh.github.io/Maddy/" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
                   </div>
                 </div>
               </div>
@@ -189,7 +193,7 @@
                 </svg>
               </button>
               <div class="workshowcase__project-info">
-                <a class="workshowcase__project-name" href="https://imbhuvanesh.github.io/Ones/" target="_blank" rel="noopener noreferrer" title="Open this site in a new tab">Ones</a>
+                <a class="workshowcase__project-name" href="https://imbhuvanesh.github.io/Maddy/" target="_blank" rel="noopener noreferrer" title="Open this site in a new tab">Maddy</a>
               </div>
               <button type="button" class="workshowcase__nav-btn workshowcase__next" aria-label="Next project">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -265,6 +265,30 @@ em { font-style: normal; color: inherit; }
   padding: calc(var(--pad) + 2rem) var(--pad);
   overflow: hidden;
   background: var(--bg);
+  /* 3D parallax: .hero__scene tilts around this origin and every layer
+     inside is projected through it at its own depth */
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+}
+
+/* ============================================================
+   HERO SCENE — the tilting 3D stage
+   The wrappers keep today's look pixel-for-pixel when the pointer is
+   idle (each layer's scale cancels its perspective shrink), and only
+   separate once --hero-nx / --hero-ny move. script.js writes those two
+   numbers; nothing else is animated from JS.
+   ============================================================ */
+.hero__scene {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: inherit; /* keeps the gutters .hero used to apply itself */
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--hero-ny, 0) * -5deg))
+             rotateY(calc(var(--hero-nx, 0) * 5deg));
+  will-change: transform;
 }
 
 .hero__bg {
@@ -275,6 +299,9 @@ em { font-style: normal; color: inherit; }
   left: 0;
   right: 0;
   z-index: 0;
+  /* far layer: pushed back, scaled 1/0.8955 so the idle frame is unchanged */
+  transform: translate3d(calc(var(--hero-nx, 0) * -7px),
+                         calc(var(--hero-ny, 0) * -7px), -140px) scale(1.117);
   will-change: transform;
 }
 
@@ -294,17 +321,6 @@ em { font-style: normal; color: inherit; }
   to   { transform: scale(1.16) translate3d(-1.5%, -1.5%, 0); }
 }
 
-/* legibility scrim over the photo */
-.hero__scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(120% 85% at 50% 45%, rgba(10, 10, 11, 0.1), rgba(10, 10, 11, 0.75) 100%),
-    linear-gradient(180deg, rgba(10, 10, 11, 0.55), rgba(10, 10, 11, 0.15) 42%, rgba(10, 10, 11, 0.9));
-  pointer-events: none;
-}
-
 .hero__inner {
   position: relative;
   z-index: 2;
@@ -316,6 +332,10 @@ em { font-style: normal; color: inherit; }
   align-items: center;
   gap: clamp(1.1rem, 2.5vw, 1.9rem);
   text-align: center;
+  /* near layer: drifts with the pointer and takes the fullest tilt */
+  transform: translate3d(calc(var(--hero-nx, 0) * 8px),
+                         calc(var(--hero-ny, 0) * 8px), 60px) scale(0.95);
+  will-change: transform;
 }
 
 .hero__title {
@@ -344,6 +364,17 @@ em { font-style: normal; color: inherit; }
   white-space: nowrap;
   /* shrink the wordmark rather than letting it spill past the gutters */
   max-width: 100%;
+}
+
+/* the line under the wordmark — a quiet counterweight to the big type */
+.hero__tagline {
+  /* the flex gap above is sized for blocks, not a caption; pull it in */
+  margin-top: -0.5em;
+  color: rgba(242, 240, 234, 0.78);
+  font-size: clamp(0.8rem, 1.8vw, 1rem);
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  text-wrap: balance;
 }
 
 
@@ -1274,6 +1305,25 @@ a.workshowcase__project-name:focus-visible {
   }
 }
 
+/* ============================================================
+   SHORT / LANDSCAPE SCREENS
+   Phones held sideways (and any short window) are wide but not
+   tall: a portrait preview frame would stand taller than the
+   viewport, and the generous vertical padding would waste what
+   little height there is. Keep the wide frame and trim the
+   breathing room instead.
+   ============================================================ */
+@media (max-height: 560px) and (orientation: landscape) {
+  .workshowcase__frame-wrapper {
+    aspect-ratio: 16 / 9;
+    /* never let the embedded page grow past the visible strip */
+    max-height: 64vh;
+  }
+
+  .chapter { padding-block: clamp(2.5rem, 8vh, 4rem); }
+  .hero { padding-block: calc(var(--pad) + 0.75rem); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .workshowcase__frame-wrapper,
   .workshowcase__iframe,
@@ -1462,7 +1512,9 @@ a.workshowcase__project-name:focus-visible {
     linear-gradient(rgba(10, 10, 11, 0.78), rgba(10, 10, 11, 0.88)),
     url('photos/footer.jpg') center / cover no-repeat #000;
   border-top: 1px solid var(--line);
-  padding: clamp(1.1rem, 3vw, 1.75rem) var(--pad);
+  /* extra bottom room so the links clear the home indicator */
+  padding: clamp(1.1rem, 3vw, 1.75rem) var(--pad)
+           calc(clamp(1.1rem, 3vw, 1.75rem) + env(safe-area-inset-bottom, 0px));
 }
 
 /* --- flower image trail ---
@@ -1628,8 +1680,8 @@ a.workshowcase__project-name:focus-visible {
 
 .lightbox__close {
   position: absolute;
-  top: clamp(1rem, 3vw, 1.75rem);
-  right: clamp(1rem, 3vw, 1.75rem);
+  top: calc(clamp(1rem, 3vw, 1.75rem) + env(safe-area-inset-top, 0px));
+  right: calc(clamp(1rem, 3vw, 1.75rem) + env(safe-area-inset-right, 0px));
   display: grid;
   place-items: center;
   width: 44px;
@@ -1654,8 +1706,9 @@ a.workshowcase__project-name:focus-visible {
    ============================================================ */
 .upbtn {
   position: fixed;
-  right: clamp(1rem, 3vw, 1.75rem);
-  bottom: clamp(1rem, 3vw, 1.75rem);
+  /* clear the home indicator / rounded corners on notched phones */
+  right: calc(clamp(1rem, 3vw, 1.75rem) + env(safe-area-inset-right, 0px));
+  bottom: calc(clamp(1rem, 3vw, 1.75rem) + env(safe-area-inset-bottom, 0px));
   z-index: 850;
   display: grid;
   place-items: center;
@@ -1930,4 +1983,9 @@ body.is-revealed .site { opacity: 1; }
 
   .preloader__char { animation-delay: 0s !important; }
   [data-reveal] { filter: none; transform: none; }
+
+  /* the 3D stage lies flat when motion is reduced */
+  .hero__scene { transform: none; }
+  .hero__bg,
+  .hero__inner { transform: none; }
 }

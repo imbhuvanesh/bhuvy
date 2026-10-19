@@ -816,10 +816,6 @@
   var projects = {
     portfolios: [
       {
-        name: 'Ones',
-        url: 'https://imbhuvanesh.github.io/Ones/'
-      },
-      {
         name: 'Maddy',
         url: 'https://imbhuvanesh.github.io/Maddy/'
       },
@@ -1212,4 +1208,95 @@
   window.addEventListener('blur', hide);
 
   place();
+})();
+
+
+/* ==================== HERO 3D PARALLAX ==================== */
+(function () {
+  'use strict';
+
+  var hero = document.getElementById('hero');
+  var scene = hero && hero.querySelector('.hero__scene');
+  if (!hero || !scene) return;
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reducedMotion.matches) return;
+
+  /* Only these two numbers are written from JS — the tilt angles and the
+     per-layer drift both derive from them in CSS, so nothing here fights
+     the transforms declared in the stylesheet. */
+  var nx = 0;   // rendered, -1 (left) → 1 (right)
+  var ny = 0;   // rendered, -1 (top)  → 1 (bottom)
+  var tx = 0;   // what the pointer is asking for
+  var ty = 0;
+  var raf = null;
+
+  function write() {
+    scene.style.setProperty('--hero-nx', nx.toFixed(3));
+    scene.style.setProperty('--hero-ny', ny.toFixed(3));
+  }
+
+  function tick() {
+    nx += (tx - nx) * 0.09;
+    ny += (ty - ny) * 0.09;
+
+    // settled: draw the final frame and park the loop
+    if (Math.abs(tx - nx) < 0.001 && Math.abs(ty - ny) < 0.001) {
+      nx = tx;
+      ny = ty;
+      write();
+      raf = null;
+      return;
+    }
+
+    write();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function run() {
+    if (raf === null) raf = requestAnimationFrame(tick);
+  }
+
+  function onMove(e) {
+    if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+
+    var r = hero.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+
+    tx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1));
+    ty = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1));
+    run();
+  }
+
+  /* ease back to the flat, centred resting state */
+  function rest() {
+    tx = 0;
+    ty = 0;
+    run();
+  }
+
+  function flatten() {
+    if (raf !== null) {
+      cancelAnimationFrame(raf);
+      raf = null;
+    }
+    scene.style.removeProperty('--hero-nx');
+    scene.style.removeProperty('--hero-ny');
+  }
+
+  hero.addEventListener('pointermove', onMove, { passive: true });
+  hero.addEventListener('pointerleave', rest, { passive: true });
+
+  /* no point easing a tilt nobody can see */
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) rest();
+    }, { threshold: 0 }).observe(hero);
+  }
+
+  if (reducedMotion.addEventListener) {
+    reducedMotion.addEventListener('change', function () {
+      if (reducedMotion.matches) flatten();
+    });
+  }
 })();
