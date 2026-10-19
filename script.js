@@ -1013,3 +1013,203 @@
 
   loadProject(0, false);
 })();
+
+
+/* ==================== SECTION-BY-SECTION UP BUTTON ==================== */
+(function () {
+  'use strict';
+
+  var btn = document.getElementById('upBtn');
+  if (!btn) return;
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* Every top-level stopping point, in document order. The hero is first,
+     so the last press lands back at the very top. */
+  var SELECTOR = '.hero, .chapter, .footer';
+
+  function sections() {
+    return Array.prototype.slice.call(document.querySelectorAll(SELECTOR));
+  }
+
+  function getScrollY() {
+    return window.pageYOffset || document.documentElement.scrollTop || 0;
+  }
+
+  /* Layout offset in the document. Walking offsetTop/offsetParent gives the
+     un-pinned position of sticky sections (the hero, Process), which is what
+     we want to scroll to — their visual rect would just be "wherever they
+     happen to be pinned right now". */
+  function docTop(el) {
+    var top = 0;
+    var node = el;
+    while (node) {
+      top += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+    return top;
+  }
+
+  /* Which section are we standing in? The last one whose top has already
+     crossed a probe line a third of the way down the viewport. */
+  function currentIndex() {
+    var list = sections();
+    if (!list.length) return -1;
+
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    var probe = getScrollY() + vh * 0.35;
+    var index = 0;
+
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].getBoundingClientRect().top + getScrollY() <= probe) index = i;
+    }
+    return index;
+  }
+
+  var anchor = -1;          // index we are heading to while a scroll settles
+  var settleTimer = null;
+
+  function refresh() {
+    /* While a jump is still in flight the page has not caught up, so keep
+       the button hidden for the final step rather than offering it twice. */
+    var from = currentIndex();
+    if (anchor !== -1 && anchor < from) from = anchor;
+    btn.classList.toggle('is-visible', from > 0);
+  }
+
+  function goUp() {
+    var list = sections();
+    var from = currentIndex();
+    if (anchor !== -1 && anchor < from) from = anchor;
+    if (from <= 0) return;
+
+    anchor = from - 1;
+    window.scrollTo({
+      top: docTop(list[anchor]),
+      behavior: reducedMotion.matches ? 'auto' : 'smooth'
+    });
+    refresh();
+  }
+
+  btn.addEventListener('click', goUp);
+
+  /* One scroll listener: keep the button's state fresh and forget the anchor
+     once the page has stopped moving (manual scrolls included). */
+  window.addEventListener('scroll', function () {
+    refresh();
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = setTimeout(function () { anchor = -1; }, 140);
+  }, { passive: true });
+
+  window.addEventListener('resize', refresh);
+  window.addEventListener('load', refresh);
+
+  refresh();
+})();
+
+
+/* ==================== CUSTOM CURSOR ==================== */
+(function () {
+  'use strict';
+
+  var star = document.getElementById('cursor');
+  if (!star) return;
+
+  /* Only ever takes over on a real pointing device. A phone or tablet
+     keeps the native behaviour untouched. */
+  var fine = window.matchMedia('(pointer: fine)').matches ||
+             window.matchMedia('(any-pointer: fine)').matches;
+  if (!fine) return;
+
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var root = document.documentElement;
+  root.classList.add('has-custom-cursor');
+
+  /* Elements that should fatten the star. Kept in one place so the feel
+     is easy to tune. */
+  var LINK_SELECTOR =
+    'a, button, [role="tab"], [role="button"], [data-lightbox], iframe, ' +
+    'input, select, textarea, summary';
+
+  var x = window.innerWidth / 2;
+  var y = window.innerHeight / 2;
+  var targetX = x;
+  var targetY = y;
+  var shown = false;
+  var raf = null;
+
+  function place() {
+    star.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
+  }
+
+  function tick() {
+    var ease = reducedMotion.matches ? 1 : 0.35;
+    x += (targetX - x) * ease;
+    y += (targetY - y) * ease;
+
+    // close enough: snap, draw, and park the loop until the next move
+    if (Math.abs(targetX - x) < 0.1 && Math.abs(targetY - y) < 0.1) {
+      x = targetX;
+      y = targetY;
+      place();
+      raf = null;
+      return;
+    }
+
+    place();
+    raf = requestAnimationFrame(tick);
+  }
+
+  function run() {
+    if (raf === null) raf = requestAnimationFrame(tick);
+  }
+
+  function show() {
+    if (shown) return;
+    shown = true;
+    star.classList.add('is-on');
+    run();
+  }
+
+  function hide() {
+    if (!shown) return;
+    shown = false;
+    star.classList.remove('is-on');
+  }
+
+  /* Pointer position. Tracking the target and easing towards it keeps the
+     star a hair behind a fast flick, the way a physical cursor would be. */
+  window.addEventListener('pointermove', function (e) {
+    if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+    targetX = e.clientX;
+    targetY = e.clientY;
+    if (!shown) {
+      x = targetX;
+      y = targetY;
+      place();
+      show();
+      return;
+    }
+    show();
+    run();
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', function () { star.classList.add('is-down'); });
+
+  window.addEventListener('pointerup', function () { star.classList.remove('is-down'); });
+
+  /* Grow over interactive things. mouseover/mouseout bubble, so one
+     listener on the document keeps the state honest everywhere. */
+  document.addEventListener('mouseover', function (e) {
+    var t = e.target;
+    star.classList.toggle('is-link', !!(t && t.closest && t.closest(LINK_SELECTOR)));
+  });
+
+  /* Over an <iframe> the page stops receiving moves — hide rather than
+     let the star freeze at the frame's edge. */
+  document.addEventListener('mouseleave', hide);
+  root.addEventListener('mouseleave', hide);
+  window.addEventListener('blur', hide);
+
+  place();
+})();

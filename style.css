@@ -1647,6 +1647,143 @@ a.workshowcase__project-name:focus-visible {
 .lightbox__close:focus-visible { transform: rotate(90deg); border-color: var(--accent); color: var(--accent); }
 
 /* ============================================================
+   SECTION UP BUTTON
+   Fixed to the bottom-right. Each press rewinds one section, so
+   the page steps back chapter by chapter rather than jumping to
+   the top. script.js toggles .is-visible once the hero is past.
+   ============================================================ */
+.upbtn {
+  position: fixed;
+  right: clamp(1rem, 3vw, 1.75rem);
+  bottom: clamp(1rem, 3vw, 1.75rem);
+  z-index: 850;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(242, 240, 234, 0.2);
+  border-radius: 999px;
+  background: rgba(242, 240, 234, 0.12);
+  color: var(--fg);
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25),
+              0 20px 70px -20px rgba(0, 0, 0, 0.6);
+  /* parked out of the way until the first section scrolls past */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px) scale(0.9);
+  transition:
+    opacity 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out),
+    visibility 0s linear 0.4s,
+    background 0.4s var(--ease-out),
+    border-color 0.4s var(--ease-out);
+}
+
+.upbtn.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out),
+    background 0.4s var(--ease-out),
+    border-color 0.4s var(--ease-out);
+}
+
+.upbtn:hover,
+.upbtn:focus-visible {
+  background: rgba(242, 240, 234, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.upbtn:active { transform: scale(0.96); }
+
+.upbtn svg { width: 20px; height: 20px; }
+
+/* a soft bob so the chevron reads as "back up there" */
+@keyframes upbtn-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+.upbtn.is-visible svg { animation: upbtn-bob 2.4s ease-in-out infinite; }
+
+/* ============================================================
+   CUSTOM CURSOR — a small white star that rides the pointer.
+   script.js adds .has-custom-cursor to <html> only when a fine
+   pointer is present, so touch/keyboard users keep the native
+   cursor and this layer stays dormant.
+   ============================================================ */
+html.has-custom-cursor body,
+html.has-custom-cursor body * { cursor: none; }
+
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1100; /* above the preloader (1000) and the lightbox (900) */
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(-100px, -100px, 0);
+  /* the halo lives here: a clip-path on the star would swallow its
+     own box-shadow, but a drop-shadow on the parent hugs the shape */
+  filter: drop-shadow(0 0 8px rgba(242, 240, 234, 0.45));
+  transition: opacity 0.35s var(--ease-out);
+  will-change: transform;
+}
+
+.cursor.is-on { opacity: 1; }
+
+/* The star lives on ::before: the tracker keeps the follow exact while
+   the star's own scale transition handles the hover growth. The polygon
+   is a 5-point star whose circumcentre sits dead centre of the box, so
+   translate(-50%, -50%) pins its heart to the pointer. */
+.cursor::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  background: var(--fg);
+  clip-path: polygon(
+    50% 0%,
+    61.2% 34.5%,
+    97.6% 34.5%,
+    68.2% 55.9%,
+    79.4% 90.5%,
+    50% 69.1%,
+    20.6% 90.5%,
+    31.8% 55.9%,
+    2.4% 34.5%,
+    38.8% 34.5%
+  );
+  transform: translate(-50%, -50%) scale(var(--cursor-scale, 1));
+  transition: transform 0.28s var(--ease-out);
+  will-change: transform;
+}
+
+/* it blooms over anything clickable */
+.cursor.is-link { --cursor-scale: 1.7; }
+
+/* and gives a small squeeze on press */
+.cursor.is-down::before { transform: translate(-50%, -50%) scale(0.8); }
+
+/* touch devices: hand the native cursor back untouched */
+@media (hover: none), (pointer: coarse) {
+  html.has-custom-cursor body,
+  html.has-custom-cursor body * { cursor: auto; }
+  .cursor { display: none; }
+}
+
+/* ============================================================
    VERY SMALL SCREENS (≤ 400px) — last pass
    ============================================================ */
 @media (max-width: 400px) {
@@ -1665,6 +1802,9 @@ a.workshowcase__project-name:focus-visible {
   .card__title { font-size: 1.15rem; }
 
   .skill-icon { height: clamp(34px, 9vw, 42px); }
+
+  .upbtn { width: 42px; height: 42px; }
+  .upbtn svg { width: 18px; height: 18px; }
 }
 
 /* ============================================================

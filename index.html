@@ -435,7 +435,25 @@
       <div class="lightbox__media"></div>
     </div>
 
+    <!-- ==================== SECTION UP BUTTON ====================
+         Each press rewinds the page one section at a time instead of
+         jumping straight to the top (see script.js). It fades in once
+         the first section has scrolled past and hides again at the top.
+    -->
+    <button type="button" class="upbtn" id="upBtn" aria-label="Go to previous section" title="Previous section">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="6 15 12 9 18 15"></polyline>
+      </svg>
+    </button>
+
   </div>
+
+  <!-- ==================== CUSTOM CURSOR ====================
+       A small white star that rides the pointer. script.js only turns
+       it on (and hides the native cursor) on devices with a real
+       mouse; touch and keyboard users never see it.
+  -->
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
 
   <noscript>
     <style>
