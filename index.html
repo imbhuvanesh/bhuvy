@@ -8,7 +8,7 @@
   <link rel="preload" href="fonts/GoogleSans-VariableFont_GRAD,opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="prelo  ad" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="videos/preloader.mp4" as="video" type="video/mp4">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -451,6 +451,32 @@
     </button>
 
   </div>
+
+  <!-- ==================== DESKTOP NOTICE ====================
+       A small glass toast on phones and tablets pointing to the
+       desktop build. script.js slides it in once the preloader has
+       lifted, hides it again on wide screens, and remembers a
+       dismissal so it never nags twice.
+       Preview it on any screen with ?notice in the URL.
+  -->
+  <aside class="pcnotice" id="pcNotice" role="status" aria-live="polite">
+    <span class="pcnotice__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="13" rx="2"></rect>
+        <path d="M8 20h8M12 16v4"></path>
+      </svg>
+    </span>
+    <div class="pcnotice__body">
+      <p class="pcnotice__title">Best on PC</p>
+      <p class="pcnotice__text">Open this site on a desktop or laptop for the full experience.</p>
+    </div>
+    <button type="button" class="pcnotice__close" aria-label="Dismiss notice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+      </svg>
+    </button>
+  </aside>
 
   <!-- ==================== CUSTOM CURSOR ====================
        A small white star that rides the pointer. script.js only turns

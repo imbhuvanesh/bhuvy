@@ -1300,3 +1300,114 @@
     });
   }
 })();
+
+
+/* ==================== DESKTOP NOTICE ====================
+   On phones and small tablets a glass toast suggests opening the
+   site on a PC. It slides in once the preloader has lifted, hides
+   itself again on wide viewports, and remembers a dismissal so it
+   only ever nags once.
+   ======================================================== */
+(function () {
+  'use strict';
+
+  var notice = document.getElementById('pcNotice');
+  if (!notice) return;
+
+  var closeBtn = notice.querySelector('.pcnotice__close');
+  var STORAGE_KEY = 'bhuvy:pcNoticeDismissed';
+  /* the site reaches its full layout at 1100px — below that it is
+     the cut-down version, which is what this toast is about */
+  var small = window.matchMedia('(max-width: 1023px)');
+
+  /* ?notice forces the toast on at any width so it can be checked on a
+     desktop. In preview mode a dismissal is never remembered. */
+  var preview = (function () {
+    try {
+      var q = new URLSearchParams(window.location.search);
+      return q.has('notice') || q.has('preview-notice');
+    } catch (err) {
+      return false;
+    }
+  })();
+
+  function isDismissed() {
+    if (preview) return false;
+    try {
+      return window.localStorage.getItem(STORAGE_KEY) === '1';
+    } catch (err) {
+      return false; /* private mode / storage disabled */
+    }
+  }
+
+  function rememberDismissal() {
+    if (preview) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, '1');
+    } catch (err) {
+      /* nothing to do — the toast simply returns next visit */
+    }
+  }
+
+  function show() {
+    if (isDismissed() || (!preview && !small.matches)) return;
+    notice.classList.add('is-visible');
+  }
+
+  function hide() {
+    notice.classList.remove('is-visible');
+  }
+
+  function dismiss() {
+    rememberDismissal();
+    hide();
+  }
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', function () {
+      dismiss();
+      closeBtn.blur(); /* the custom cursor keeps its own focus ring */
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && notice.classList.contains('is-visible')) {
+      dismiss();
+    }
+  });
+
+  /* wait for the preloader curtain to lift before sliding the toast in */
+  function whenRevealed() {
+    if (document.body.classList.contains('is-revealed')) {
+      show();
+      return;
+    }
+    if (!('MutationObserver' in window)) {
+      window.setTimeout(show, 1200);
+      return;
+    }
+    var observer = new MutationObserver(function () {
+      if (!document.body.classList.contains('is-revealed')) return;
+      observer.disconnect();
+      show();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  whenRevealed();
+
+  /* rotate a tablet or resize the window — the toast follows the viewport */
+  function sync() {
+    if (preview || small.matches) {
+      show();
+    } else {
+      hide();
+    }
+  }
+
+  if (typeof small.addEventListener === 'function') {
+    small.addEventListener('change', sync);
+  } else if (typeof small.addListener === 'function') {
+    small.addListener(sync);
+  }
+})();

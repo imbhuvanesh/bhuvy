@@ -1837,6 +1837,125 @@ html.has-custom-cursor body * { cursor: none; }
 }
 
 /* ============================================================
+   DESKTOP NOTICE — a glass toast on phones/tablets suggesting
+   the desktop build. script.js slides it in after the preloader
+   has lifted and hides it again once the viewport is wide enough.
+   ============================================================ */
+.pcnotice {
+  position: fixed;
+  left: calc(clamp(1rem, 3vw, 1.75rem) + env(safe-area-inset-left, 0px));
+  /* clears the section up-button sitting in the bottom-right corner */
+  bottom: calc(clamp(1rem, 3vw, 1.75rem) + var(--notice-lift, 58px) + env(safe-area-inset-bottom, 0px));
+  z-index: 880; /* above the up-button (850), below the lightbox (900) */
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: min(22rem, calc(100vw - 2 * (clamp(1rem, 3vw, 1.75rem))));
+  padding: 0.9rem 0.8rem 0.9rem 0.95rem;
+  border: 1px solid rgba(242, 240, 234, 0.16);
+  border-radius: 16px;
+  background: rgba(16, 16, 18, 0.74);
+  color: var(--fg);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14),
+              0 24px 60px -18px rgba(0, 0, 0, 0.7);
+  /* parked off-stage until script.js adds .is-visible */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(18px) scale(0.96);
+  transform-origin: 0 100%;
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.5s var(--ease-out),
+    visibility 0s linear 0.5s;
+}
+
+.pcnotice.is-visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.5s var(--ease-out);
+}
+
+.pcnotice__icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(242, 240, 234, 0.14);
+  border-radius: 11px;
+  background: rgba(242, 240, 234, 0.07);
+  color: var(--fg);
+}
+
+.pcnotice__icon svg { width: 20px; height: 20px; }
+
+.pcnotice__body { flex: 1 1 auto; min-width: 0; }
+
+.pcnotice__title {
+  font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  margin-bottom: 0.1rem;
+}
+
+.pcnotice__text {
+  color: rgba(242, 240, 234, 0.72);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.pcnotice__close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(242, 240, 234, 0.55);
+  cursor: pointer;
+  transition: background 0.3s var(--ease-out), color 0.3s var(--ease-out);
+}
+
+.pcnotice__close:hover,
+.pcnotice__close:focus-visible {
+  background: rgba(242, 240, 234, 0.12);
+  color: var(--fg);
+}
+
+.pcnotice__close:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.pcnotice__close svg { width: 15px; height: 15px; }
+
+/* a slow breath on the monitor so the toast reads as a live hint */
+@media (prefers-reduced-motion: no-preference) {
+  .pcnotice.is-visible .pcnotice__icon {
+    animation: pcnotice-pulse 3.2s ease-in-out infinite;
+  }
+}
+
+@keyframes pcnotice-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(242, 240, 234, 0); }
+  50%      { box-shadow: 0 0 0 5px rgba(242, 240, 234, 0.05); }
+}
+
+/* ============================================================
    VERY SMALL SCREENS (≤ 400px) — last pass
    ============================================================ */
 @media (max-width: 400px) {
@@ -1858,6 +1977,13 @@ html.has-custom-cursor body * { cursor: none; }
 
   .upbtn { width: 42px; height: 42px; }
   .upbtn svg { width: 18px; height: 18px; }
+
+  /* the up-button is shorter here — keep the toast clear of it */
+  .pcnotice { --notice-lift: 54px; padding: 0.8rem 0.7rem 0.8rem 0.85rem; }
+  .pcnotice__icon { width: 34px; height: 34px; }
+  .pcnotice__icon svg { width: 18px; height: 18px; }
+  .pcnotice__title { font-size: 0.98rem; }
+  .pcnotice__text { font-size: 0.8rem; }
 }
 
 /* ============================================================
