@@ -8,15 +8,16 @@
   <link rel="preload" href="fonts/GoogleSans-VariableFont_GRAD,opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="prelo  ad" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="videos/preloader.mp4" as="video" type="video/mp4">
+  <link rel="preload" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- the preloader <video> already uses preload="auto"; rel=preload as=video
+       is not supported by browsers and only logged a warning -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="is-loading">
 
   <!-- ==================== PRELOADER ==================== -->
   <div class="preloader" id="preloader">
-    <video class="preloader__video" id="preloaderVideo" autoplay muted loop playsinline preload="auto" poster="photos/preloader-bg.jpg">
+    <video class="preloader__video" id="preloaderVideo" autoplay muted loop playsinline preload="auto">
       <source src="videos/preloader.mp4" type="video/mp4">
     </video>
     <div class="preloader__center">
@@ -277,6 +278,7 @@
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=python" height="52" alt="Python" loading="lazy" decoding="async">
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=nodejs" height="52" alt="Node.js" loading="lazy" decoding="async">
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=mysql" height="52" alt="MySQL" loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=postgres" height="52" alt="PostgreSQL" loading="lazy" decoding="async">
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=supabase" height="52" alt="Supabase" loading="lazy" decoding="async">
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=flutter" height="52" alt="Flutter" loading="lazy" decoding="async">
                 <img class="skill-icon" src="https://skillicons.dev/icons?i=git" height="52" alt="Git" loading="lazy" decoding="async">
@@ -375,18 +377,70 @@
               feel free to get in touch.
             </p>
 
-            <div class="contact__actions" data-reveal data-reveal-delay="400">
-              <a class="btn btn--accent" href="https://wa.me/919944725379" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
-                <svg class="btn__icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 1.67c2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24zM8.53 7.33c-.16 0-.42.06-.64.3-.22.24-.85.83-.85 2.03s.87 2.36.99 2.52c.12.16 1.71 2.73 4.16 3.72 2.04.82 2.45.66 2.9.62.44-.04 1.42-.58 1.62-1.14.2-.56.2-1.04.14-1.14-.06-.1-.22-.16-.46-.28-.24-.12-1.42-.7-1.64-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.93-1.19-.71-.63-1.19-1.41-1.33-1.65-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.46-.39-.4-.54-.41h-.46z"/></svg>
-                WhatsApp
-              </a>
-              <a class="btn" href="mailto:iambhuvanesh.a@gmail.com" aria-label="Send an email">
-                <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
-                Email
-              </a>
-            </div>
+            <!-- ============ START A PROJECT — enquiry form ============ -->
+            <section class="pform-section" id="start-project" aria-labelledby="pformTitle" data-reveal data-reveal-delay="100">
+              <header class="pform-section__head">
+                <h3 class="pform-section__title" id="pformTitle">Start a Project With Me</h3>
+              </header>
 
-            <p class="contact__closing" data-reveal data-reveal-delay="400">Let's turn your ideas into reality.</p>
+              <form class="pform" id="projectForm" novalidate>
+                <div class="pform__grid">
+                  <div class="pform__field pform__field--full">
+                    <label class="pform__label" for="pfName">Client Name</label>
+                    <input class="pform__input" id="pfName" name="clientName" type="text" autocomplete="name" placeholder="Your full name" required aria-describedby="pfNameError">
+                    <p class="pform__error" id="pfNameError" aria-live="polite"></p>
+                  </div>
+
+                  <div class="pform__field">
+                    <label class="pform__label" for="pfEmail">Client Email</label>
+                    <input class="pform__input" id="pfEmail" name="clientEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required aria-describedby="pfEmailError">
+                    <p class="pform__error" id="pfEmailError" aria-live="polite"></p>
+                  </div>
+
+                  <div class="pform__field">
+                    <label class="pform__label" for="pfPhone">Client WhatsApp Number</label>
+                    <input class="pform__input" id="pfPhone" name="clientPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 00000 00000" required aria-describedby="pfPhoneError">
+                    <p class="pform__error" id="pfPhoneError" aria-live="polite"></p>
+                  </div>
+
+                  <fieldset class="pform__fieldset">
+                    <legend class="pform__label">Project Type</legend>
+                    <div class="pform__choices">
+                      <label class="pform__choice">
+                        <input type="radio" id="pfTypeWebsite" name="projectType" value="Website Development" data-price="$168–$210" required>
+                        <span class="pform__choice-text">Website Development</span>
+                      </label>
+                      <label class="pform__choice">
+                        <input type="radio" id="pfTypeVideo" name="projectType" value="Video Editing" data-price="$4.74–$6.32" required>
+                        <span class="pform__choice-text">Video Editing</span>
+                      </label>
+                      <label class="pform__choice">
+                        <input type="radio" id="pfTypeApp" name="projectType" value="App Development" data-price="$210–$315" required>
+                        <span class="pform__choice-text">App Development</span>
+                      </label>
+                    </div>
+                    <p class="pform__error" id="pfTypeError" aria-live="polite"></p>
+                  </fieldset>
+
+                  <div class="pform__field pform__field--full">
+                    <label class="pform__label" for="pfDescription">Project Description</label>
+                    <textarea class="pform__textarea" id="pfDescription" name="projectDescription" rows="5" placeholder="Tell me about your goals, style, deadline, and anything else I should know." required aria-describedby="pfDescriptionError"></textarea>
+                    <p class="pform__error" id="pfDescriptionError" aria-live="polite"></p>
+                  </div>
+
+                  <div class="pform__summary">
+                    <span class="pform__summary-label" id="pfPriceLabel">Estimated Cost</span>
+                    <output class="pform__summary-value is-placeholder" id="pfPrice" for="pfTypeWebsite pfTypeVideo pfTypeApp" aria-labelledby="pfPriceLabel" aria-live="polite">Select a project type</output>
+                  </div>
+
+                  <div class="pform__actions">
+                    <button class="btn btn--accent" type="submit">
+                      Start Project
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
           </div>
         </div>
       </section>
@@ -423,6 +477,9 @@
           </a>
           <a class="footer__split footer__split--instagram split" href="https://www.instagram.com/bhuvy._/" target="_blank" rel="noopener noreferrer">
             <span class="footer__label">Instagram</span>
+          </a>
+          <a class="footer__split footer__split--gmail split" href="mailto:iambhuvanesh.a@gmail.com" style="--font-width: 77">
+            <span class="footer__label">Gmail</span>
           </a>
           <a class="footer__split footer__split--coffee split" href="https://buymeacoffee.com/bhuvaneshh" target="_blank" rel="noopener noreferrer" style="--font-width: 93">
             <span class="footer__label">Buy me a coffee</span>
@@ -493,15 +550,18 @@
     </style>
   </noscript>
 
-  <!-- Failsafe: the site is never stuck behind the preloader -->
+  <!-- Failsafe: the site is never stuck behind the preloader.
+       script.js re-arms this to match the video's real length, so the
+       normal cinematic exit is never cut short by this timer. -->
   <script>
-    window.__preloaderFailsafe = setTimeout(function () {
+    window.__forceReveal = function () {
       var p = document.getElementById('preloader');
       if (p && p.parentNode) p.parentNode.removeChild(p);
       document.documentElement.classList.add('force-loaded');
       document.body.classList.remove('is-loading');
       document.body.classList.add('is-revealed');
-    }, 8000);
+    };
+    window.__preloaderFailsafe = setTimeout(window.__forceReveal, 8000);
   </script>
   <!-- GSAP + SplitText power the footer's character-lift hover.
        All three are deferred so script.js runs after the plugins. -->

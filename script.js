@@ -250,7 +250,18 @@
     MIN_DURATION = Math.round(dur * 1000);
     HARD_CAP = MIN_DURATION + 2500;
     INTRO_TARGET = MIN_DURATION - 250;
+    armFailsafe();
     markDurationReady();
+  }
+
+  /* The inline failsafe in index.html fires at 8s, but a 9s preloader
+     video means the normal exit lands later than that. Re-arm it past the
+     hard cap so it only ever rescues a genuinely broken load. */
+  function armFailsafe() {
+    if (window.__preloaderFailsafe) clearTimeout(window.__preloaderFailsafe);
+    window.__preloaderFailsafe = (typeof window.__forceReveal === 'function')
+      ? setTimeout(window.__forceReveal, HARD_CAP + 4000)
+      : null;
   }
   var startTime = performance.now();
   var fontsReady = false;
@@ -273,10 +284,20 @@
     var imgs = doc.images;
     if (!imgs || !imgs.length) return 1;
     var done = 0;
+    var total = 0;
+
     for (var i = 0; i < imgs.length; i++) {
-      if (imgs[i].complete && imgs[i].naturalWidth > 0) done++;
+      var img = imgs[i];
+      // Lazy images below the fold never start loading while the preloader
+      // locks the page, so counting them would stall progress until HARD_CAP.
+      if (!img.complete && img.getAttribute('loading') === 'lazy') continue;
+      total++;
+      // `complete` also covers broken images — otherwise a single 404
+      // would keep the preloader alive until the hard cap.
+      if (img.complete) done++;
     }
-    return done / imgs.length;
+
+    return total ? done / total : 1;
   }
 
   function progressTick(now) {
@@ -596,6 +617,8 @@
      right-to-left loop can translate -50% seamlessly
   --------------------------------------------------------- */
   function initMarquee() {
+    if (reducedMotion.matches) return;
+
     var gallery = doc.querySelector('.gallery[data-marquee]');
     if (!gallery) return;
 
@@ -670,7 +693,6 @@
 
     var mousePos = { x: 0, y: 0 };
     var lastMousePos = { x: 0, y: 0 };
-    var cachedPos = { x: 0, y: 0 };
     var isOver = false;
 
     function toFooterSpace(e) {
@@ -682,7 +704,6 @@
       var p = toFooterSpace(e);
       lastMousePos = { x: p.x, y: p.y };
       mousePos = { x: p.x, y: p.y };
-      cachedPos = { x: p.x, y: p.y };
       isOver = true;
     }, { passive: true });
 
@@ -733,9 +754,6 @@
       if (!isOver) return;
 
       var travelDistance = Math.hypot(lastMousePos.x - mousePos.x, lastMousePos.y - mousePos.y);
-
-      cachedPos.x = gsap.utils.interpolate(cachedPos.x || mousePos.x, mousePos.x, 0.1);
-      cachedPos.y = gsap.utils.interpolate(cachedPos.y || mousePos.y, mousePos.y, 0.1);
 
       if (travelDistance > GAP) {
         animateImage();
@@ -788,6 +806,9 @@
     });
   }
   later(function () { markDurationReady(); }, 1500);
+
+  // own the failsafe from here on, sized to the video rather than a fixed 8s
+  armFailsafe();
 
   // Try to play video (in case autoplay didn't trigger immediately)
   if (preloaderVideo) {
@@ -858,7 +879,8 @@
 
   var currentCategory = 'portfolios';
   var currentIndex = 0;
-  var isTransitioning = false;
+  var fadeTimer = null;
+  var swapTimer = null;
   var xStart = 0;
   var yStart = 0;
 
@@ -894,10 +916,21 @@
   function loadProject(index, animate) {
     var currentProjects = getCurrentProjects();
     if (index < 0 || index >= currentProjects.length) return;
-    if (isTransitioning) return;
 
     currentIndex = index;
     var project = currentProjects[currentIndex];
+
+    // A newer request supersedes any fade/swap still in flight. Without
+    // this, switching tabs (or clicking fast) during the 250ms fade was
+    // dropped and left the frame showing the previous category.
+    if (fadeTimer) {
+      clearTimeout(fadeTimer);
+      fadeTimer = null;
+    }
+    if (swapTimer) {
+      clearTimeout(swapTimer);
+      swapTimer = null;
+    }
 
     if (projectName) {
       projectName.textContent = project.name;
@@ -908,22 +941,23 @@
 
     if (animate && iframe) {
       iframe.classList.add('is-fading');
-      isTransitioning = true;
 
-      setTimeout(function () {
+      fadeTimer = setTimeout(function () {
+        fadeTimer = null;
         hideFallback();
         iframe.src = project.url;
         iframe.title = 'Live preview of ' + project.name;
         if (fallbackLink) fallbackLink.href = project.url;
 
-        setTimeout(function () {
+        swapTimer = setTimeout(function () {
+          swapTimer = null;
           iframe.classList.remove('is-fading');
-          isTransitioning = false;
         }, 50);
       }, 250);
     } else {
       hideFallback();
       if (iframe) {
+        iframe.classList.remove('is-fading');
         iframe.src = project.url;
         iframe.title = 'Live preview of ' + project.name;
       }
@@ -979,9 +1013,6 @@
   });
 
   if (iframe) {
-    iframe.addEventListener('load', function () {
-    });
-
     iframe.addEventListener('error', function () {
       showFallback(iframe.src);
     });
@@ -1318,7 +1349,7 @@
   var STORAGE_KEY = 'bhuvy:pcNoticeDismissed';
   /* the site reaches its full layout at 1100px — below that it is
      the cut-down version, which is what this toast is about */
-  var small = window.matchMedia('(max-width: 1023px)');
+  var small = window.matchMedia('(max-width: 1099px)');
 
   /* ?notice forces the toast on at any width so it can be checked on a
      desktop. In preview mode a dismissal is never remembered. */
@@ -1410,4 +1441,269 @@
   } else if (typeof small.addListener === 'function') {
     small.addListener(sync);
   }
+})();
+
+
+/* ==================== START A PROJECT FORM ====================
+   Validates the enquiry locally, updates the price from the chosen
+   project type, and opens WhatsApp with an encoded, pre-filled
+   message. No backend, no storage — nothing is sent automatically.
+   ============================================================ */
+(function () {
+  'use strict';
+
+  var form = document.getElementById('projectForm');
+  if (!form) return;
+
+  var WA_NUMBER = '919944725379';
+  var priceEl = document.getElementById('pfPrice');
+  var choices = Array.prototype.slice.call(form.querySelectorAll('.pform__choice'));
+
+  var fields = {
+    name: form.querySelector('#pfName'),
+    email: form.querySelector('#pfEmail'),
+    phone: form.querySelector('#pfPhone'),
+    description: form.querySelector('#pfDescription')
+  };
+
+  var errors = {
+    name: form.querySelector('#pfNameError'),
+    email: form.querySelector('#pfEmailError'),
+    phone: form.querySelector('#pfPhoneError'),
+    type: form.querySelector('#pfTypeError'),
+    description: form.querySelector('#pfDescriptionError')
+  };
+
+  var typeGroup = form.querySelector('.pform__fieldset');
+
+  function selectedType() {
+    return form.querySelector('input[name="projectType"]:checked');
+  }
+
+  function priceFor(input) {
+    return input ? input.getAttribute('data-price') : '';
+  }
+
+  /* ---------------------------------------------------------
+     Price summary
+  --------------------------------------------------------- */
+  function updatePrice(animate) {
+    if (!priceEl) return;
+
+    var picked = selectedType();
+    var value = picked ? priceFor(picked) : 'Select a project type';
+
+    if (priceEl.textContent !== value) {
+      priceEl.textContent = value;
+
+      if (animate) {
+        priceEl.classList.remove('is-updated');
+        void priceEl.offsetWidth; /* restart the keyframe */
+        priceEl.classList.add('is-updated');
+      }
+    }
+
+    priceEl.classList.toggle('is-placeholder', !picked);
+  }
+
+  function syncChoices() {
+    choices.forEach(function (choice) {
+      var input = choice.querySelector('input');
+      if (!input) return;
+      choice.classList.toggle('is-checked', input.checked);
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Inline errors
+  --------------------------------------------------------- */
+  function fieldWrap(key) {
+    return key === 'type' ? typeGroup : fields[key].closest('.pform__field');
+  }
+
+  function setError(key, message) {
+    var el = errors[key];
+    var wrap = fieldWrap(key);
+
+    if (el) el.textContent = message;
+    if (wrap) wrap.classList.add('is-invalid');
+
+    if (key !== 'type' && fields[key]) fields[key].setAttribute('aria-invalid', 'true');
+    if (key === 'type') {
+      Array.prototype.forEach.call(
+        form.querySelectorAll('input[name="projectType"]'),
+        function (input) { input.setAttribute('aria-invalid', 'true'); }
+      );
+    }
+  }
+
+  function clearError(key) {
+    var el = errors[key];
+    var wrap = fieldWrap(key);
+
+    if (el) el.textContent = '';
+    if (wrap) wrap.classList.remove('is-invalid');
+
+    if (key !== 'type' && fields[key]) fields[key].removeAttribute('aria-invalid');
+    if (key === 'type') {
+      Array.prototype.forEach.call(
+        form.querySelectorAll('input[name="projectType"]'),
+        function (input) { input.removeAttribute('aria-invalid'); }
+      );
+    }
+  }
+
+  /* ---------------------------------------------------------
+     Validation
+  --------------------------------------------------------- */
+  function isName(value) {
+    return value.trim().length >= 2;
+  }
+
+  function isEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
+  }
+
+  function isPhone(value) {
+    var trimmed = value.trim();
+    var digits = trimmed.replace(/\D/g, '');
+    return /^[+()\d\s.-]+$/.test(trimmed) && digits.length >= 7 && digits.length <= 15;
+  }
+
+  function isDescription(value) {
+    return value.trim().length >= 10;
+  }
+
+  function validate() {
+    var firstInvalid = null;
+
+    if (!isName(fields.name.value)) {
+      setError('name', 'Please enter your name (at least 2 characters).');
+      firstInvalid = firstInvalid || fields.name;
+    } else {
+      clearError('name');
+    }
+
+    if (!isEmail(fields.email.value)) {
+      setError('email', 'Please enter a valid email address.');
+      firstInvalid = firstInvalid || fields.email;
+    } else {
+      clearError('email');
+    }
+
+    if (!isPhone(fields.phone.value)) {
+      setError('phone', 'Please enter a valid WhatsApp number (7–15 digits).');
+      firstInvalid = firstInvalid || fields.phone;
+    } else {
+      clearError('phone');
+    }
+
+    if (!selectedType()) {
+      setError('type', 'Please choose a project type.');
+      firstInvalid = firstInvalid || form.querySelector('input[name="projectType"]');
+    } else {
+      clearError('type');
+    }
+
+    if (!isDescription(fields.description.value)) {
+      setError('description', 'Please describe your project (at least 10 characters).');
+      firstInvalid = firstInvalid || fields.description;
+    } else {
+      clearError('description');
+    }
+
+    if (firstInvalid) {
+      firstInvalid.focus();
+      if (firstInvalid.setSelectionRange && firstInvalid.type === 'tel') {
+        try { firstInvalid.setSelectionRange(firstInvalid.value.length, firstInvalid.value.length); } catch (err) {}
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  /* ---------------------------------------------------------
+     WhatsApp hand-off
+  --------------------------------------------------------- */
+  function buildMessage(picked) {
+    return [
+      'New Project Enquiry',
+      '',
+      'Client Details:',
+      '- Name: ' + fields.name.value.trim(),
+      '- Email: ' + fields.email.value.trim(),
+      '- WhatsApp Number: ' + fields.phone.value.trim(),
+      '',
+      'Project Details:',
+      '- Project Type: ' + picked.value,
+      '- Estimated Price Range: ' + priceFor(picked),
+      '- Project Description: ' + fields.description.value.trim(),
+      '',
+      'I’m interested in discussing this project further and would love to hear from you.'
+    ].join('\n');
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    var picked = selectedType();
+    var url = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(buildMessage(picked));
+
+    /* opened straight from the submit handler so popup blockers allow it */
+    window.open(url, '_blank', 'noopener');
+  });
+
+  /* ---------------------------------------------------------
+     Live feedback — never resets what the visitor typed
+  --------------------------------------------------------- */
+  Object.keys(fields).forEach(function (key) {
+    var input = fields[key];
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+      if (!errors[key] || !errors[key].textContent) return;
+
+      var valid = {
+        name: isName,
+        email: isEmail,
+        phone: isPhone,
+        description: isDescription
+      }[key](input.value);
+
+      if (valid) clearError(key);
+    });
+  });
+
+  Array.prototype.forEach.call(
+    form.querySelectorAll('input[name="projectType"]'),
+    function (input) {
+      input.addEventListener('change', function () {
+        syncChoices();
+        clearError('type');
+        updatePrice(true);
+      });
+
+      input.addEventListener('focus', function () {
+        var choice = input.closest('.pform__choice');
+        if (!choice) return;
+        try {
+          if (input.matches(':focus-visible')) choice.classList.add('is-focus');
+        } catch (err) {
+          choice.classList.add('is-focus');
+        }
+      });
+
+      input.addEventListener('blur', function () {
+        var choice = input.closest('.pform__choice');
+        if (choice) choice.classList.remove('is-focus');
+      });
+    }
+  );
+
+  /* initial paint */
+  syncChoices();
+  updatePrice(false);
 })();

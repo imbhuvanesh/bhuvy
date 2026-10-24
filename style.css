@@ -73,6 +73,7 @@
   /* social brand colours (footer links) */
   --github: #3ddc84;
   --instagram: #e1306c;
+  --gmail: #ea4335;
   --coffee: #ffdd00;
 
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -168,7 +169,7 @@ em { font-style: normal; color: inherit; }
   object-position: center;
   z-index: 0;
   pointer-events: none;
-  background: #0a0a0b url('photos/preloader-bg.jpg') center center / cover no-repeat;
+  background: #0a0a0b;
 }
 
 .preloader.is-hidden {
@@ -1407,21 +1408,6 @@ a.workshowcase__project-name:focus-visible {
 .contact .chapter__title { font-size: clamp(2.1rem, 8vw, 5rem); }
 .contact .chapter__text { max-width: 56ch; margin-left: auto; margin-right: auto; }
 
-.contact__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(0.6rem, 1.6vw, 0.9rem);
-  margin-top: clamp(1.5rem, 3vw, 2.25rem);
-}
-
-/* keep the action pills inside the gutters on the narrowest phones */
-@media (max-width: 480px) {
-  .contact__actions { flex-direction: column; align-items: stretch; }
-  .contact__actions .btn { justify-content: center; }
-}
-
 @media (max-width: 420px) {
   .btn {
     padding: 0.8rem 1.35rem;
@@ -1494,10 +1480,250 @@ a.workshowcase__project-name:focus-visible {
   flex: 0 0 auto;
 }
 
-.contact__closing {
-  margin-top: clamp(1.5rem, 3vw, 2.25rem);
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-  color: rgba(242, 240, 234, 0.9);
+/* --- Start a Project (enquiry form inside Contact) ---
+   Reuses the contact card, tokens, pill buttons and hairlines so the
+   form reads as part of the same card rather than a separate widget. */
+.pform-section {
+  margin-top: clamp(2.75rem, 6vw, 4.5rem);
+  padding-top: clamp(2.25rem, 5vw, 3.5rem);
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+
+.pform-section__head {
+  max-width: 58ch;
+  margin-bottom: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.pform-section__title {
+  font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(1.55rem, 3.4vw, 2.35rem);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: 0.01em;
+}
+
+
+
+.pform__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(0.9rem, 2vw, 1.35rem);
+}
+
+.pform__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.pform__field--full { grid-column: 1 / -1; }
+
+.pform__label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* fieldset resets so the legend lines up with the other labels */
+.pform__fieldset {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.pform__fieldset > .pform__label {
+  display: block;
+  margin-bottom: 0.55rem;
+  padding: 0;
+}
+
+.pform__input,
+.pform__textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: rgba(242, 240, 234, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-appearance: none;
+  appearance: none;
+  transition:
+    background 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out),
+    box-shadow 0.35s var(--ease-out);
+}
+
+.pform__textarea {
+  min-height: 8.5rem;
+  resize: vertical;
+}
+
+.pform__input::placeholder,
+.pform__textarea::placeholder { color: rgba(242, 240, 234, 0.3); }
+
+.pform__input:hover,
+.pform__textarea:hover { border-color: rgba(242, 240, 234, 0.24); }
+
+.pform__input:focus,
+.pform__textarea:focus {
+  outline: none;
+  border-color: rgba(242, 240, 234, 0.5);
+  background: rgba(242, 240, 234, 0.06);
+  box-shadow: 0 0 0 3px rgba(242, 240, 234, 0.08);
+}
+
+/* the palette has no red — warnings use the existing brand yellow */
+.pform__field.is-invalid .pform__input,
+.pform__field.is-invalid .pform__textarea {
+  border-color: rgba(255, 221, 0, 0.55);
+}
+
+.pform__error {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #ffdd00;
+}
+
+.pform__error:empty { display: none; }
+
+/* project-type pills — same language as the buttons and showcase tabs */
+.pform__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.pform__choice {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.7rem 1.15rem;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.35s var(--ease-out),
+    border-color 0.35s var(--ease-out),
+    color 0.35s var(--ease-out);
+}
+
+.pform__choice:hover {
+  border-color: rgba(242, 240, 234, 0.3);
+  color: var(--fg);
+}
+
+/* the radio stays in the accessibility tree but visually becomes the pill */
+.pform__choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+.pform__choice:has(input:checked),
+.pform__choice.is-checked {
+  background: rgba(242, 240, 234, 0.14);
+  border-color: rgba(242, 240, 234, 0.42);
+  color: var(--fg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.pform__choice:has(input:focus-visible),
+.pform__choice.is-focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* keeps the yellow error cue on the group without turning every pill yellow */
+.pform__fieldset.is-invalid .pform__choice { border-color: rgba(255, 221, 0, 0.32); }
+
+.pform__summary {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem 1.25rem;
+  padding: 1rem 1.25rem;
+  background: rgba(242, 240, 234, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.pform__summary-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pform__summary-value {
+  font-family: 'Advercase', 'Noto Sans Tamil', 'Helvetica Neue', Arial, sans-serif;
+  font-size: clamp(1.3rem, 2.2vw, 1.65rem);
+  font-weight: 700;
+  color: var(--fg);
+}
+
+.pform__summary-value.is-placeholder {
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
+.pform__summary-value.is-updated { animation: pform-price-in 0.35s var(--ease-out); }
+
+@keyframes pform-price-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pform__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.9rem;
+  margin-top: 0.15rem;
+}
+
+.pform__actions .btn {
+  font-family: inherit;
+  border-color: transparent;
+}
+
+.pform__actions .btn:hover,
+.pform__actions .btn:focus-visible {
+  border-color: transparent;
+}
+
+@media (max-width: 640px) {
+  .pform__grid { grid-template-columns: 1fr; }
+  .pform__actions { justify-content: stretch; }
+  .pform__actions .btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .pform__choice { flex: 1 1 100%; justify-content: center; }
 }
 
 /* ============================================================
@@ -1598,6 +1824,7 @@ a.workshowcase__project-name:focus-visible {
 /* --- brand colours, revealed on interaction --- */
 .footer__split--github { --brand: var(--github); }
 .footer__split--instagram { --brand: var(--instagram); }
+.footer__split--gmail { --brand: var(--gmail); }
 
 .footer__split:hover,
 .footer__split:focus-visible {
