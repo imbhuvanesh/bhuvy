@@ -847,16 +847,12 @@
     ],
     landing: [
       {
-        name: 'Sunflower',
-        url: 'https://imbhuvanesh.github.io/sunflower/'
+        name: 'DG',
+        url: 'https://imbhuvanesh.github.io/DG/'
       },
       {
         name: 'Ifixon',
         url: 'https://imbhuvanesh.github.io/ifixon/'
-      },
-      {
-        name: 'DG',
-        url: 'https://imbhuvanesh.github.io/DG/'
       },
       {
         name: 'Duck.app',
@@ -877,7 +873,7 @@
   var nextBtn = workShowcase.querySelector('.workshowcase__next');
   var tabs = workShowcase.querySelectorAll('.workshowcase__tab');
 
-  var currentCategory = 'portfolios';
+  var currentCategory = 'landing';
   var currentIndex = 0;
   var fadeTimer = null;
   var swapTimer = null;

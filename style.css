@@ -72,6 +72,9 @@
 
   /* social brand colours (footer links) */
   --github: #3ddc84;
+  /* brand blue lifted so it stays legible on the near-black footer */
+  --linkedin: #4a9eff;
+  --behance: #1769ff;
   --instagram: #e1306c;
   --gmail: #ea4335;
   --coffee: #ffdd00;
@@ -1823,6 +1826,8 @@ a.workshowcase__project-name:focus-visible {
 
 /* --- brand colours, revealed on interaction --- */
 .footer__split--github { --brand: var(--github); }
+.footer__split--linkedin { --brand: var(--linkedin); }
+.footer__split--behance { --brand: var(--behance); }
 .footer__split--instagram { --brand: var(--instagram); }
 .footer__split--gmail { --brand: var(--gmail); }
 
