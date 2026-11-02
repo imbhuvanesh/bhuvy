@@ -52,6 +52,17 @@
 
       <!-- ==================== ABOUT (the card that rides over the pinned hero) ==================== -->
       <section class="chapter chapter--card" id="about" aria-labelledby="aboutTitle">
+        <!-- ============ STACKED CARD PULL INDICATOR ============ -->
+        <div class="card-pull" role="button" tabindex="0" aria-label="Scroll for details">
+          <span class="card-pull__handle" aria-hidden="true"></span>
+          <span class="card-pull__label">
+            <svg class="card-pull__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+            Scroll for details
+          </span>
+        </div>
+
         <div class="chapter__inner">
           <div class="about">
             <div class="about__media" data-reveal>
@@ -566,6 +577,9 @@
       document.body.classList.add('is-revealed');
       if (typeof window.startFloralHeroReveal === 'function') {
         window.startFloralHeroReveal();
+      }
+      if (typeof window.markHeroEffectsDone === 'function') {
+        window.markHeroEffectsDone();
       }
     };
     window.__preloaderFailsafe = setTimeout(window.__forceReveal, 8000);

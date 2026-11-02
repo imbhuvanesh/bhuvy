@@ -460,7 +460,7 @@
   --------------------------------------------------------- */
   function initScrollFx(driver) {
     var chapters = slice(doc.querySelectorAll('.chapter'));
-    var inners = chapters.map(function (c) { return c.firstElementChild; });
+    var inners = chapters.map(function (c) { return c.querySelector('.chapter__inner') || c.firstElementChild; });
     var bgImg = doc.querySelector('.chapters__bg-img');
     var chaptersWrap = doc.querySelector('.chapters');
 
@@ -766,11 +766,129 @@
      Site behaviour (set up after the reveal so the curtain
      lifts first)
   --------------------------------------------------------- */
+  /* ---------------------------------------------------------
+     Stacked Card Pull Effect (One-Time Intro Hint)
+     Shows an inviting pull handle & animated nudge on the hero
+     stacked card ONE TIME ONLY on first load so the visitor
+     knows to scroll, and after that returns to completely normal.
+  --------------------------------------------------------- */
+  var cardPullDismissed = false;
+
+  function dismissCardPull() {
+    if (cardPullDismissed) return;
+    cardPullDismissed = true;
+    try {
+      sessionStorage.setItem('cardPullDismissed', '1');
+    } catch (e) {}
+
+    doc.body.classList.add('card-pull-dismissed');
+    var about = doc.getElementById('about');
+    if (about) {
+      about.classList.remove('has-pull-hint');
+      about.classList.remove('is-peek-ready');
+    }
+
+    var pulls = slice(doc.querySelectorAll('.card-pull'));
+    pulls.forEach(function (p) {
+      p.classList.add('is-dismissed');
+      p.classList.remove('is-nudging');
+    });
+  }
+  window.dismissCardPull = dismissCardPull;
+
+  function markHeroEffectsDone() {
+    if (doc.body.classList.contains('hero-effects-done')) return;
+    doc.body.classList.add('hero-effects-done');
+
+    var alreadyDismissed = false;
+    try {
+      alreadyDismissed = sessionStorage.getItem('cardPullDismissed') === '1';
+    } catch (e) {}
+
+    var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
+    if (alreadyDismissed || scrollY > 20) {
+      dismissCardPull();
+      return;
+    }
+
+    // First time only: show the little pull peek hint
+    var about = doc.getElementById('about');
+    if (about) {
+      about.classList.add('has-pull-hint');
+      var pull = about.querySelector('.card-pull');
+      if (pull) pull.classList.add('is-nudging');
+    }
+  }
+  window.markHeroEffectsDone = markHeroEffectsDone;
+
+  function initCardPullEffect() {
+    var about = doc.getElementById('about');
+    if (!about) return;
+
+    var pull = about.querySelector('.card-pull');
+
+    // On any scroll or touch down the page, dismiss the hint and make it completely normal
+    window.addEventListener('scroll', function () {
+      var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
+      if (scrollY > 15) {
+        dismissCardPull();
+      }
+    }, { passive: true });
+
+    if (pull) {
+      function scrollToCard() {
+        dismissCardPull();
+        var cardTop = about.getBoundingClientRect().top + (window.pageYOffset || doc.documentElement.scrollTop);
+        window.scrollTo({
+          top: cardTop,
+          behavior: 'smooth'
+        });
+      }
+
+      var startY = 0;
+      var isDown = false;
+
+      pull.addEventListener('pointerdown', function (e) {
+        if (e.button !== undefined && e.button !== 0) return;
+        startY = e.clientY;
+        isDown = true;
+      });
+
+      pull.addEventListener('pointermove', function (e) {
+        if (!isDown) return;
+        var diffY = startY - e.clientY;
+        if (diffY > 12) {
+          isDown = false;
+          scrollToCard();
+        }
+      });
+
+      pull.addEventListener('pointerup', function () {
+        if (isDown) {
+          isDown = false;
+          scrollToCard();
+        }
+      });
+
+      pull.addEventListener('pointercancel', function () {
+        isDown = false;
+      });
+
+      pull.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          scrollToCard();
+        }
+      });
+    }
+  }
+
   function initSite() {
     initReveal();
 
     var driver = initScrollDriver();
     initScrollFx(driver);
+    initCardPullEffect(driver);
 
     initFilters();
     initLightbox();
@@ -1156,7 +1274,7 @@
      is easy to tune. */
   var LINK_SELECTOR =
     'a, button, [role="tab"], [role="button"], [data-lightbox], iframe, ' +
-    'input, select, textarea, summary';
+    'input, select, textarea, summary, [data-draggable], .flower-node.is-draggable, .card-pull';
 
   var x = window.innerWidth / 2;
   var y = window.innerHeight / 2;
@@ -1392,12 +1510,105 @@
     });
   }
 
+  let dragInitialized = false;
+  let highestZ = 30;
+
+  /**
+   * Simple, fluid drag interaction enabled on all flowers after
+   * the preloader and bloom effects finish.
+   */
+  function enableFlowerDrag() {
+    if (dragInitialized) return;
+    dragInitialized = true;
+
+    const container = document.getElementById('flowerContainer');
+
+    flowerElements.forEach(el => {
+      el.classList.add('is-draggable');
+      el.setAttribute('data-draggable', 'true');
+
+      let isDragging = false;
+      let startPointerX = 0;
+      let startPointerY = 0;
+      let currentX = 0;
+      let currentY = 0;
+
+      function onPointerDown(e) {
+        // Only primary button (left mouse) or touch/pen
+        if (e.button !== undefined && e.button !== 0) return;
+
+        isDragging = true;
+        startPointerX = e.clientX;
+        startPointerY = e.clientY;
+
+        highestZ += 1;
+        el.style.zIndex = highestZ;
+
+        el.classList.add('is-dragging');
+        if (container) container.classList.add('has-dragging');
+
+        if (el.setPointerCapture) {
+          try {
+            el.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+
+        e.preventDefault();
+      }
+
+      function onPointerMove(e) {
+        if (!isDragging) return;
+
+        const dx = e.clientX - startPointerX;
+        const dy = e.clientY - startPointerY;
+
+        const posX = currentX + dx;
+        const posY = currentY + dy;
+
+        el.style.setProperty('--drag-x', `${posX}px`);
+        el.style.setProperty('--drag-y', `${posY}px`);
+      }
+
+      function onPointerUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        const dx = e.clientX - startPointerX;
+        const dy = e.clientY - startPointerY;
+        currentX += dx;
+        currentY += dy;
+
+        el.classList.remove('is-dragging');
+        if (container) container.classList.remove('has-dragging');
+
+        if (el.releasePointerCapture) {
+          try {
+            el.releasePointerCapture(e.pointerId);
+          } catch (err) {}
+        }
+      }
+
+      function onPointerCancel(e) {
+        onPointerUp(e);
+      }
+
+      el.addEventListener('pointerdown', onPointerDown);
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+      el.addEventListener('pointercancel', onPointerCancel);
+    });
+  }
+
+  // Expose so it can also be manually triggered if desired
+  window.enableFlowerDrag = enableFlowerDrag;
+
   /**
    * Orchestrates the reveal animation:
    * 1. Initially, keeps all flower images hidden.
    * 2. Waits 2 seconds after the hero is revealed.
    * 3. Gradually reveals the flowers one by one using smooth fade-in animations.
    * 4. Once revealed, they settle in place without floating.
+   * 5. After the preloader and effects are finished, enables the simple drag interaction.
    */
   function startRevealAnimation() {
     flowerElements.forEach(el => {
@@ -1407,16 +1618,27 @@
     // Shuffle reveal order so flowers bloom organically across the whole page
     const sequence = shuffle(flowerElements);
 
+    let maxDelay = 0;
+
     // REQUIREMENT: Wait 2 seconds after page loads / reveal
     setTimeout(() => {
       // REQUIREMENT: Gradually reveal flowers one by one
       sequence.forEach((flower, index) => {
         const delay = (index * CONFIG.staggerInterval) + getRandom(0, CONFIG.jitter);
+        if (delay > maxDelay) maxDelay = delay;
 
         setTimeout(() => {
           flower.classList.add('is-revealed');
         }, delay);
       });
+
+      // Enable drag and reveal card pull effect after preloader and effects are finished
+      // Total wait = max stagger delay + 850ms CSS bloom transition
+      const remainingEffectsTime = maxDelay + 850;
+      setTimeout(() => {
+        enableFlowerDrag();
+        markHeroEffectsDone();
+      }, remainingEffectsTime);
     }, CONFIG.initialDelay);
   }
 

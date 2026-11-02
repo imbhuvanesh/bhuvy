@@ -387,12 +387,16 @@ em { font-style: normal; color: inherit; }
   height: 100%;
   overflow: visible;
   pointer-events: none;
-  z-index: 5;
+  z-index: 12;
   transform-style: preserve-3d;
   transform: translate3d(calc(var(--hero-nx, 0) * -22px),
                          calc(var(--hero-ny, 0) * -22px),
                          -20px);
   will-change: transform;
+}
+
+.flower-container.has-dragging {
+  z-index: 50;
 }
 
 /* Individual Flower Node */
@@ -401,12 +405,14 @@ em { font-style: normal; color: inherit; }
   transform-origin: center center;
   pointer-events: none;
   will-change: transform, opacity;
+  --drag-x: 0px;
+  --drag-y: 0px;
 
   /* REQUIREMENT: Initially, keep all flower images hidden */
   opacity: 0;
   visibility: hidden;
   filter: blur(4px);
-  transform: translate(-50%, -50%) scale(0.2) rotate(var(--rot-start, 0deg));
+  transform: translate(calc(-50% + var(--drag-x, 0px)), calc(-50% + var(--drag-y, 0px))) scale(0.2) rotate(var(--rot-start, 0deg));
 
   /* Smooth gradual fade-in & scale reveal transition */
   transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
@@ -419,7 +425,36 @@ em { font-style: normal; color: inherit; }
   opacity: var(--final-opacity, 1);
   visibility: visible;
   filter: blur(0px);
-  transform: translate(-50%, -50%) scale(1) rotate(var(--rot, 0deg));
+  transform: translate(calc(-50% + var(--drag-x, 0px)), calc(-50% + var(--drag-y, 0px))) scale(1) rotate(var(--rot, 0deg));
+}
+
+/* Interactive Draggable State: Activated after preloader and bloom effects finish */
+.flower-node.is-draggable {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.flower-node.is-draggable:not(.is-dragging) {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+              filter 0.25s ease,
+              opacity 0.85s ease;
+}
+
+.flower-node.is-draggable:hover {
+  filter: drop-shadow(0 20px 36px rgba(0, 30, 70, 0.5));
+}
+
+/* Active Dragging State: Instant responsiveness, raised elevation, grabbing cursor */
+.flower-node.is-dragging {
+  cursor: grabbing !important;
+  transition: none !important;
+  z-index: 1000 !important;
+  filter: drop-shadow(0 28px 48px rgba(0, 20, 50, 0.55))
+          drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3)) !important;
+  transform: translate(calc(-50% + var(--drag-x, 0px)), calc(-50% + var(--drag-y, 0px))) scale(1.08) rotate(var(--rot, 0deg)) !important;
 }
 
 /* Large Flower Image */
@@ -431,6 +466,8 @@ em { font-style: normal; color: inherit; }
   filter: drop-shadow(0 16px 30px rgba(0, 25, 60, 0.45))
           drop-shadow(0 4px 10px rgba(0, 18, 45, 0.28));
   pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 /* Responsive adjustments */
@@ -452,10 +489,148 @@ em { font-style: normal; color: inherit; }
   background:
     linear-gradient(rgba(10, 10, 11, 0.72), rgba(10, 10, 11, 0.82)),
     url('photos/bg.png') center / cover no-repeat var(--bg);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-bottom: 0; /* no stray hairline where the card meets My Services */
   border-radius: clamp(20px, 3vw, 32px);
   box-shadow: 0 -30px 80px rgba(0, 0, 0, 0.65);
+}
+
+/* Stacked card: normal flow; pins hero and rides up over it */
+.stack > .chapter--card {
+  position: relative;
+  z-index: 20;
+}
+
+/* One-time first-time pull peek hint: smoothly nudges into view once all hero effects finish */
+.stack > #about.chapter--card {
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.stack > #about.chapter--card.has-pull-hint {
+  transform: translate3d(0, -48px, 0);
+}
+
+/* ============================================================
+   STACKED CARD PULL INDICATOR (One-time intro hint)
+   ============================================================ */
+.card-pull {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  touch-action: pan-y;
+}
+
+/* Appears only during the one-time first-time pull hint */
+.has-pull-hint .card-pull {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Tactile grab bar pill */
+.card-pull__handle {
+  width: 42px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+/* Subtle label with icon */
+.card-pull__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(242, 240, 234, 0.72);
+  transition: color 0.25s ease;
+}
+
+.card-pull__icon {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  transition: transform 0.25s ease;
+}
+
+/* Gentle animated pull nudge during the one-time intro hint */
+.card-pull.is-nudging {
+  animation: cardPullNudge 2.6s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes cardPullNudge {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  18% {
+    transform: translateY(-8px);
+  }
+  32% {
+    transform: translateY(-2px);
+  }
+  46% {
+    transform: translateY(-6px);
+  }
+  62% {
+    transform: translateY(0);
+  }
+}
+
+/* Hover state */
+.card-pull:hover .card-pull__handle,
+.card-pull:focus-visible .card-pull__handle {
+  width: 54px;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.card-pull:hover .card-pull__label,
+.card-pull:focus-visible .card-pull__label {
+  color: #ffffff;
+}
+
+.card-pull:hover .card-pull__icon,
+.card-pull:focus-visible .card-pull__icon {
+  transform: translateY(-2px);
+}
+
+/* Once dismissed: completely removed, returns to normal */
+body.card-pull-dismissed .card-pull,
+.card-pull.is-dismissed {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-pull.is-nudging {
+    animation: none;
+  }
+  .stack > #about.chapter--card {
+    transition: none !important;
+  }
 }
 
 /* the Contact card rides over a pinned Process section */
