@@ -91,7 +91,7 @@
   --sar: env(safe-area-inset-right, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
-  --card-peek-height: 52px;
+  --card-peek-height: 90px;
   --card-pull-y: 0px;
   --vh: 100svh;
   --dvh: 100dvh;
@@ -525,9 +525,14 @@ em { font-style: normal; color: inherit; }
   box-shadow: 0 -36px 90px rgba(0, 0, 0, 0.85);
 }
 
-/* One-time first-time pull peek hint: nudges into view once hero effects finish */
+/* Card stays completely hidden initially (0px, below viewport) */
 .stack > #about.chapter--card.has-pull-hint {
-  --card-pull-y: calc(-1 * var(--card-peek-height, 52px));
+  --card-pull-y: 0px;
+}
+
+/* Slightly pulls up only upon user click or upward drag */
+.stack > #about.chapter--card.is-pulled-up {
+  --card-pull-y: calc(-1 * var(--card-peek-height, 90px));
 }
 
 /* REQUIREMENT: Initial Collapsed State — Never reveal details on initial load */
@@ -553,77 +558,67 @@ em { font-style: normal; color: inherit; }
 }
 
 /* ============================================================
-   STACKED CARD PULL HANDLE (Mobile Touch + Desktop Mouse)
+   TRANSPARENT PULL BUTTON (Floats Above Card, Card Hidden Initially)
    ============================================================ */
 .card-pull {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--card-peek-height, 52px);
-  min-height: 48px;
-  display: flex;
-  flex-direction: column;
+  top: -54px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  cursor: grab;
-  z-index: 30;
-  pointer-events: auto;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+  color: rgba(242, 240, 234, 0.92);
+  cursor: pointer;
+  z-index: 35;
   user-select: none;
   -webkit-user-select: none;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.25s ease;
   touch-action: none; /* Handle takes full control during drag */
   outline: none;
-  padding: 8px 16px;
 }
 
 .stack > #about.chapter--card.is-dragging .card-pull {
   cursor: grabbing !important;
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Hint visible state */
 .has-pull-hint .card-pull,
+.is-pulled-up .card-pull,
 .is-expanded .card-pull {
   opacity: 1;
-  transform: translateY(0);
+  pointer-events: auto;
 }
 
-/* Tactile grab bar pill */
+/* Tactile grab bar pill hidden */
 .card-pull__handle {
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.48);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
-  transition: width 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
-}
-
-/* Subtle label with icon */
-.card-pull__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(242, 240, 234, 0.76);
-  transition: color 0.25s ease;
+  display: none !important;
 }
 
 .card-pull__icon {
-  width: 13px;
-  height: 13px;
+  width: 17px;
+  height: 17px;
   stroke: currentColor;
   stroke-width: 2.5;
+  flex-shrink: 0;
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* In expanded state, chevron points down for collapse cue */
+/* When pulled up, chevron points down for collapse cue */
+.stack > #about.chapter--card.is-pulled-up .card-pull__icon,
 .stack > #about.chapter--card.is-expanded .card-pull__icon {
   transform: rotate(180deg);
 }
@@ -635,56 +630,67 @@ em { font-style: normal; color: inherit; }
 
 @keyframes cardAutoPullNudge {
   0%, 100% {
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
   18% {
-    transform: translateY(-8px);
+    transform: translateX(-50%) translateY(-6px);
   }
   32% {
-    transform: translateY(-2px);
+    transform: translateX(-50%) translateY(-2px);
   }
   46% {
-    transform: translateY(-6px);
+    transform: translateX(-50%) translateY(-5px);
   }
   62% {
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
-/* Hover and focus states */
-.card-pull:hover .card-pull__handle,
-.card-pull:focus-visible .card-pull__handle {
-  width: 58px;
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.card-pull:hover .card-pull__label,
-.card-pull:focus-visible .card-pull__label {
+/* Hover and focus states - glowing transparent glass */
+.card-pull:hover,
+.card-pull:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.55);
   color: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45), 0 0 12px rgba(255, 255, 255, 0.15);
+  transform: translateX(-50%) translateY(-2px);
 }
 
-.card-pull:hover .card-pull__icon,
-.card-pull:focus-visible .card-pull__icon {
-  transform: translateY(-2px);
-}
-
-.stack > #about.chapter--card.is-expanded .card-pull:hover .card-pull__icon,
-.stack > #about.chapter--card.is-expanded .card-pull:focus-visible .card-pull__icon {
-  transform: rotate(180deg) translateY(-2px);
+.card-pull:active {
+  transform: translateX(-50%) translateY(1px);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .card-pull:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.45);
-  outline-offset: -3px;
-  border-radius: clamp(20px, 3vw, 32px) clamp(20px, 3vw, 32px) 0 0;
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 3px;
 }
 
-/* Once fully dismissed in normal flow, gently hide handle without affecting layout */
+.stack > #about.chapter--card.is-pulled-up .card-pull:hover .card-pull__icon,
+.stack > #about.chapter--card.is-pulled-up .card-pull:focus-visible .card-pull__icon,
+.stack > #about.chapter--card.is-expanded .card-pull:hover .card-pull__icon,
+.stack > #about.chapter--card.is-expanded .card-pull:focus-visible .card-pull__icon {
+  transform: rotate(180deg) translateY(1px);
+}
+
+/* Once fully dismissed in normal flow, gently hide button without affecting layout */
 body.card-pull-dismissed .card-pull,
 .card-pull.is-dismissed {
   opacity: 0 !important;
   pointer-events: none !important;
   transition: opacity 0.35s ease;
+}
+
+@media (max-width: 480px) {
+  .card-pull {
+    top: -48px;
+    width: 36px;
+    height: 36px;
+  }
+  .card-pull__icon {
+    width: 15px;
+    height: 15px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

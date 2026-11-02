@@ -793,6 +793,7 @@
     if (about) {
       about.classList.remove('has-pull-hint');
       about.classList.remove('is-collapsed');
+      about.classList.remove('is-pulled-up');
       about.classList.remove('is-dragging');
       about.style.removeProperty('--card-pull-y');
       var inner = about.querySelector('.chapter__inner');
@@ -845,72 +846,45 @@
     var pull = doc.getElementById('aboutCardPull') || about.querySelector('.card-pull');
     var pullText = pull ? pull.querySelector('.card-pull__text') : null;
 
-    var isCollapsed = true;
+    var isPulledUp = false;
     var isDragging = false;
-    var isAnimating = false;
     var startY = 0;
     var startX = 0;
     var startTime = 0;
     var currentDiffY = 0;
-    var PEEK_HEIGHT = 52; // matches --card-peek-height
+    var PEEK_HEIGHT = 90; // matches --card-peek-height (smooth slight pull up)
 
-    function setExpandedState(expanded, animateScroll) {
-      if (isAnimating) return;
-      isCollapsed = !expanded;
+    function togglePulledUpState(pulledUp) {
+      isPulledUp = !!pulledUp;
+      if (pull) pull.classList.remove('is-nudging');
 
-      if (expanded) {
-        about.classList.remove('is-collapsed');
-        about.classList.add('is-expanded');
-        about.style.removeProperty('--card-pull-y');
+      if (isPulledUp) {
+        about.classList.add('is-pulled-up');
+        about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
         if (pull) {
-          pull.classList.remove('is-nudging');
           pull.setAttribute('aria-expanded', 'true');
           pull.setAttribute('aria-label', 'Collapse details');
           if (pullText) pullText.textContent = 'Collapse';
         }
-
-        if (animateScroll) {
-          isAnimating = true;
-          var aboutTop = about.getBoundingClientRect().top + (window.pageYOffset || doc.documentElement.scrollTop);
-          window.scrollTo({
-            top: aboutTop,
-            behavior: reducedMotion.matches ? 'auto' : 'smooth'
-          });
-          setTimeout(function () {
-            isAnimating = false;
-          }, 600);
-        }
       } else {
-        about.classList.add('is-collapsed');
-        about.classList.remove('is-expanded');
-        about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
+        about.classList.remove('is-pulled-up');
+        about.style.setProperty('--card-pull-y', '0px');
         if (pull) {
           pull.setAttribute('aria-expanded', 'false');
           pull.setAttribute('aria-label', 'Pull to view details');
           if (pullText) pullText.textContent = 'Pull for details';
         }
-
-        if (animateScroll) {
-          isAnimating = true;
-          window.scrollTo({
-            top: 0,
-            behavior: reducedMotion.matches ? 'auto' : 'smooth'
-          });
-          setTimeout(function () {
-            isAnimating = false;
-          }, 600);
-        }
       }
     }
 
-    // Centralized scroll driver integration: eliminates redundant scroll listeners
+    // Centralized scroll driver integration
     if (driver && driver.add) {
       driver.add(function (vh) {
         var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
 
-        // When scrolling down past 30px, reveal card details without jumping
-        if (scrollY > 30 && isCollapsed) {
-          setExpandedState(true, false);
+        // When scrolling down past 30px, ensure card inner is revealed
+        if (scrollY > 30 && about.classList.contains('is-collapsed')) {
+          about.classList.remove('is-collapsed');
         }
 
         // When scrolled deep into the page (past half hero), dismiss hint permanently
@@ -924,7 +898,6 @@
       function onPointerDown(e) {
         // Only primary mouse button or touch/pen
         if (e.button !== undefined && e.button !== 0) return;
-        if (isAnimating) return;
 
         isDragging = true;
         startY = e.clientY;
@@ -951,15 +924,15 @@
 
         currentDiffY = dy;
 
-        if (isCollapsed) {
-          // Dragging upward from peek (-PEEK_HEIGHT)
+        if (!isPulledUp) {
+          // Dragging upward from 0
           var pullUp = Math.max(0, dy);
-          var newY = -PEEK_HEIGHT - pullUp;
-          about.style.setProperty('--card-pull-y', newY + 'px');
+          about.style.setProperty('--card-pull-y', (-pullUp) + 'px');
         } else {
-          // Dragging downward from expanded (0)
-          var pullDown = Math.min(0, dy); // dy is negative when dragging downward
-          about.style.setProperty('--card-pull-y', (-pullDown) + 'px');
+          // Dragging downward from pulled up (-PEEK_HEIGHT)
+          var pullDown = Math.min(0, dy);
+          var currentY = -PEEK_HEIGHT - pullDown;
+          about.style.setProperty('--card-pull-y', Math.min(0, currentY) + 'px');
         }
       }
 
@@ -980,29 +953,26 @@
 
         if (distance < 8) {
           // Intentional Click or Tap toggle!
-          if (isCollapsed) {
-            setExpandedState(true, true);
-          } else {
-            setExpandedState(false, true);
-          }
+          lastPointerToggle = Date.now();
+          togglePulledUpState(!isPulledUp);
           return;
         }
 
-        if (isCollapsed) {
+        if (!isPulledUp) {
           // Pulled up past threshold (36px) or flicked up
           if (currentDiffY > 36 || velocity > 0.35) {
-            setExpandedState(true, true);
+            togglePulledUpState(true);
           } else {
-            // Spring back to peek state
-            about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
+            // Spring back to hidden
+            about.style.setProperty('--card-pull-y', '0px');
           }
         } else {
           // Pulled down past threshold (-36px) or flicked down
           if (currentDiffY < -36 || velocity < -0.35) {
-            setExpandedState(false, true);
+            togglePulledUpState(false);
           } else {
-            // Spring back to expanded state
-            about.style.setProperty('--card-pull-y', '0px');
+            // Spring back to pulled-up state
+            about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
           }
         }
       }
@@ -1011,10 +981,10 @@
         if (!isDragging) return;
         isDragging = false;
         about.classList.remove('is-dragging');
-        if (isCollapsed) {
-          about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
-        } else {
+        if (!isPulledUp) {
           about.style.setProperty('--card-pull-y', '0px');
+        } else {
+          about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
         }
       }
 
@@ -1023,15 +993,21 @@
       pull.addEventListener('pointerup', onPointerUp);
       pull.addEventListener('pointercancel', onPointerCancel);
 
+      var lastPointerToggle = 0;
+
+      // Native button click & assistive click support
+      pull.addEventListener('click', function (e) {
+        if (Date.now() - lastPointerToggle < 400) return;
+        lastPointerToggle = Date.now();
+        togglePulledUpState(!isPulledUp);
+      });
+
       // Keyboard accessible Enter / Space
       pull.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (isCollapsed) {
-            setExpandedState(true, true);
-          } else {
-            setExpandedState(false, true);
-          }
+          lastPointerToggle = Date.now();
+          togglePulledUpState(!isPulledUp);
         }
       });
     }

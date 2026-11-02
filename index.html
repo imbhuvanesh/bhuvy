@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -13,6 +14,7 @@
        is not supported by browsers and only logged a warning -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="is-loading">
 
   <!-- ==================== PRELOADER ==================== -->
@@ -34,50 +36,52 @@
     -->
     <!-- ============ STACKED CARDS — the hero pins while the About card slides over it ============ -->
     <div class="stack">
-    <section class="hero" id="hero">
-      <div class="hero__scene" id="heroScene">
-        <!-- Flower Layer -->
-        <div class="flower-container" id="flowerContainer" aria-hidden="true"></div>
+      <section class="hero" id="hero">
+        <div class="hero__scene" id="heroScene">
+          <!-- Flower Layer -->
+          <div class="flower-container" id="flowerContainer" aria-hidden="true"></div>
 
-        <!-- Hero Image -->
-        <div class="hero-wrapper">
-          <h1 class="sr-only">Bhuvanesh — Developer &amp; Video Editor</h1>
-          <div class="hero-media">
-            <img src="hero.png" alt="Hero Visual" class="hero-image" id="heroImage">
-            <span class="hero-shine" aria-hidden="true"></span>
+          <!-- Hero Image -->
+          <div class="hero-wrapper">
+            <h1 class="sr-only">Bhuvanesh — Developer &amp; Video Editor</h1>
+            <div class="hero-media">
+              <img src="hero.png" alt="Hero Visual" class="hero-image" id="heroImage">
+              <span class="hero-shine" aria-hidden="true"></span>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
       <!-- ==================== ABOUT (the card that rides over the pinned hero) ==================== -->
       <section class="chapter chapter--card is-collapsed" id="about" aria-labelledby="aboutTitle">
-        <!-- ============ STACKED CARD PULL INDICATOR ============ -->
-        <div class="card-pull" id="aboutCardPull" role="button" tabindex="0" aria-label="Pull to view details" aria-expanded="false">
-          <span class="card-pull__handle" aria-hidden="true"></span>
-          <span class="card-pull__label">
-            <svg class="card-pull__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="18 15 12 9 6 15"></polyline>
-            </svg>
-            <span class="card-pull__text">Pull for details</span>
-          </span>
-        </div>
+        <!-- ============ STACKED CARD PULL BUTTON ============ -->
+        <button type="button" class="card-pull" id="aboutCardPull" aria-label="Pull to view details"
+          aria-expanded="false">
+          <svg class="card-pull__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="18 15 12 9 6 15"></polyline>
+          </svg>
+        </button>
 
         <div class="chapter__inner">
           <div class="about">
             <div class="about__media" data-reveal>
-              <img class="about__img" src="photos/img.png" alt="Portrait of Bhuvanesh A" loading="lazy" decoding="async">
+              <img class="about__img" src="photos/img.png" alt="Portrait of Bhuvanesh A" loading="lazy"
+                decoding="async">
             </div>
             <div class="about__body">
               <h2 class="chapter__title" id="aboutTitle" data-reveal data-reveal-delay="100">About Me</h2>
               <p class="chapter__text" data-reveal data-reveal-delay="200">
                 I'm <strong>Bhuvanesh A</strong>, a <em>Freelance Developer</em> and <em>Video Editor</em> passionate
-                about turning ideas into <span class="hl">impactful digital experiences</span>. I build modern websites, develop
+                about turning ideas into <span class="hl">impactful digital experiences</span>. I build modern websites,
+                develop
                 applications, and create engaging video content that combines creativity with purpose.
               </p>
               <p class="chapter__text" data-reveal data-reveal-delay="300">
-                I focus on crafting solutions that are <span class="hl">visually appealing</span>, functional, and user-friendly.
-                With every project, I strive to learn, innovate, and deliver work that <span class="hl">brings ideas to life</span>.
+                I focus on crafting solutions that are <span class="hl">visually appealing</span>, functional, and
+                user-friendly.
+                With every project, I strive to learn, innovate, and deliver work that <span class="hl">brings ideas to
+                  life</span>.
               </p>
             </div>
           </div>
@@ -97,7 +101,8 @@
           <header class="chapter__head">
             <h2 class="chapter__title" id="servicesTitle" data-reveal data-reveal-delay="100">My Services</h2>
             <p class="chapter__text" data-reveal data-reveal-delay="200">
-              I build <span class="hl">websites, web apps, and mobile apps</span> — and edit videos that bring your ideas to life.
+              I build <span class="hl">websites, web apps, and mobile apps</span> — and edit videos that bring your
+              ideas to life.
             </p>
             <p class="chapter__text" data-reveal data-reveal-delay="300">
               Clean, responsive work that looks great on <span class="hl">every device</span>.
@@ -167,30 +172,31 @@
           <header class="chapter__head">
             <h2 class="chapter__title" id="workTitle" data-reveal data-reveal-delay="100">My Work</h2>
             <p class="chapter__text" data-reveal data-reveal-delay="200">
-              <span class="hl">Portfolios, applications and software</span> — real projects with screenshots, tech stacks and links
+              <span class="hl">Portfolios, applications and software</span> — real projects with screenshots, tech
+              stacks and links
               go here. The slots below are intentionally empty so nothing is invented.
             </p>
           </header>
 
           <div class="workshowcase" data-reveal data-reveal-delay="300">
             <div class="workshowcase__tabs" role="tablist" aria-label="Switch between project categories">
-              <button type="button" class="workshowcase__tab is-active" role="tab" data-category="landing" aria-selected="true">Landing Pages</button>
-              <button type="button" class="workshowcase__tab" role="tab" data-category="portfolios" aria-selected="false">Portfolios</button>
+              <button type="button" class="workshowcase__tab is-active" role="tab" data-category="landing"
+                aria-selected="true">Landing Pages</button>
+              <button type="button" class="workshowcase__tab" role="tab" data-category="portfolios"
+                aria-selected="false">Portfolios</button>
             </div>
 
             <div class="workshowcase__preview-container">
               <div class="workshowcase__frame-wrapper">
-                <iframe 
-                  class="workshowcase__iframe"
-                  src="https://imbhuvanesh.github.io/DG/"
-                  title="Live preview"
+                <iframe class="workshowcase__iframe" src="https://imbhuvanesh.github.io/DG/" title="Live preview"
                   loading="lazy"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals allow-top-navigation-by-user-activation">
                 </iframe>
                 <div class="workshowcase__fallback" hidden>
                   <div class="workshowcase__fallback-content">
                     <p>This site blocks iframe embedding</p>
-                    <a class="workshowcase__fallback-link" href="https://imbhuvanesh.github.io/DG/" target="_blank" rel="noopener noreferrer">Open in a new tab</a>
+                    <a class="workshowcase__fallback-link" href="https://imbhuvanesh.github.io/DG/" target="_blank"
+                      rel="noopener noreferrer">Open in a new tab</a>
                   </div>
                 </div>
               </div>
@@ -198,15 +204,18 @@
 
             <div class="workshowcase__nav">
               <button type="button" class="workshowcase__nav-btn workshowcase__prev" aria-label="Previous project">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
                   <polyline points="15 18 9 12 15 6"></polyline>
                 </svg>
               </button>
               <div class="workshowcase__project-info">
-                <a class="workshowcase__project-name" href="https://imbhuvanesh.github.io/DG/" target="_blank" rel="noopener noreferrer" title="Open this site in a new tab">DG</a>
+                <a class="workshowcase__project-name" href="https://imbhuvanesh.github.io/DG/" target="_blank"
+                  rel="noopener noreferrer" title="Open this site in a new tab">DG</a>
               </div>
               <button type="button" class="workshowcase__nav-btn workshowcase__next" aria-label="Next project">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                  stroke-linejoin="round" aria-hidden="true">
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </button>
@@ -230,7 +239,8 @@
           <header class="chapter__head">
             <h2 class="chapter__title" id="visualsTitle" data-reveal data-reveal-delay="100">My Visuals</h2>
             <p class="chapter__text" data-reveal data-reveal-delay="200">
-              A collection of visual stories, <span class="hl">cinematic edits, colour grading experiments</span>, photo manipulations,
+              A collection of visual stories, <span class="hl">cinematic edits, colour grading experiments</span>, photo
+              manipulations,
               and creative work that reflects my approach to visual storytelling.
             </p>
           </header>
@@ -245,7 +255,8 @@
                 <img class="tile__img" src="Poster/two.jpg" alt="Poster design two" loading="lazy" decoding="async">
               </button>
 
-              <button type="button" class="tile" data-lightbox data-src="Poster/three.jpg" data-alt="Poster design three">
+              <button type="button" class="tile" data-lightbox data-src="Poster/three.jpg"
+                data-alt="Poster design three">
                 <img class="tile__img" src="Poster/three.jpg" alt="Poster design three" loading="lazy" decoding="async">
               </button>
 
@@ -253,16 +264,22 @@
                 <img class="tile__img" src="Poster/four.jpg" alt="Poster design four" loading="lazy" decoding="async">
               </button>
 
-              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/ALG.mp4" data-alt="Video edit" aria-label="Video edit — open preview">
-                <video class="tile__img" src="Poster/ALG.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/ALG.mp4"
+                data-alt="Video edit" aria-label="Video edit — open preview">
+                <video class="tile__img" src="Poster/ALG.mp4" autoplay muted loop playsinline preload="metadata"
+                  aria-hidden="true"></video>
               </button>
 
-              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/poster.mp4" data-alt="Video edit poster" aria-label="Video edit poster — open preview">
-                <video class="tile__img" src="Poster/poster.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/poster.mp4"
+                data-alt="Video edit poster" aria-label="Video edit poster — open preview">
+                <video class="tile__img" src="Poster/poster.mp4" autoplay muted loop playsinline preload="metadata"
+                  aria-hidden="true"></video>
               </button>
 
-              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/podcast.mp4" data-alt="Podcast edit" aria-label="Podcast edit — open preview">
-                <video class="tile__img" src="Poster/podcast.mp4" autoplay muted loop playsinline preload="metadata" aria-hidden="true"></video>
+              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/podcast.mp4"
+                data-alt="Podcast edit" aria-label="Podcast edit — open preview">
+                <video class="tile__img" src="Poster/podcast.mp4" autoplay muted loop playsinline preload="metadata"
+                  aria-hidden="true"></video>
               </button>
             </div>
           </div>
@@ -280,37 +297,56 @@
             <div class="skill-group" data-reveal>
               <h3 class="skill-group__title">Tech Stack</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=java" height="52" alt="Java" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=html" height="52" alt="HTML" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=css" height="52" alt="CSS" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=js" height="52" alt="JavaScript" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=python" height="52" alt="Python" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=nodejs" height="52" alt="Node.js" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=mysql" height="52" alt="MySQL" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=postgres" height="52" alt="PostgreSQL" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=supabase" height="52" alt="Supabase" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=flutter" height="52" alt="Flutter" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=git" height="52" alt="Git" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=linux" height="52" alt="Linux" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=vscode" height="52" alt="VS Code" loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=java" height="52" alt="Java" loading="lazy"
+                  decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=html" height="52" alt="HTML" loading="lazy"
+                  decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=css" height="52" alt="CSS" loading="lazy"
+                  decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=js" height="52" alt="JavaScript"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=python" height="52" alt="Python"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=nodejs" height="52" alt="Node.js"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=mysql" height="52" alt="MySQL"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=postgres" height="52" alt="PostgreSQL"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=supabase" height="52" alt="Supabase"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=flutter" height="52" alt="Flutter"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=git" height="52" alt="Git" loading="lazy"
+                  decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=linux" height="52" alt="Linux"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=vscode" height="52" alt="VS Code"
+                  loading="lazy" decoding="async">
               </div>
             </div>
 
             <div class="skill-group" data-reveal data-reveal-delay="100">
               <h3 class="skill-group__title">Creative Tools</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=ps" height="52" alt="Adobe Photoshop" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=pr" height="52" alt="Adobe Premiere Pro" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=ae" height="52" alt="Adobe After Effects" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=figma" height="52" alt="Figma" loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=ps" height="52" alt="Adobe Photoshop"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=pr" height="52" alt="Adobe Premiere Pro"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=ae" height="52" alt="Adobe After Effects"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=figma" height="52" alt="Figma"
+                  loading="lazy" decoding="async">
               </div>
             </div>
 
             <div class="skill-group" data-reveal data-reveal-delay="200">
               <h3 class="skill-group__title">Productivity &amp; Knowledge</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=notion" height="52" alt="Notion" loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=obsidian" height="52" alt="Obsidian" loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=notion" height="52" alt="Notion"
+                  loading="lazy" decoding="async">
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=obsidian" height="52" alt="Obsidian"
+                  loading="lazy" decoding="async">
               </div>
             </div>
           </div>
@@ -319,140 +355,157 @@
 
       <!-- ============ STACKED CARDS — Contact is dealt over a pinned Process ============ -->
       <div class="stack stack--contact">
-      <!-- ==================== WORK PROCESS ==================== -->
-      <section class="chapter" id="process" aria-labelledby="processTitle">
-        <div class="chapter__inner">
-          <header class="chapter__head">
-            <h2 class="chapter__title" id="processTitle" data-reveal data-reveal-delay="100">My Process</h2>
-          </header>
+        <!-- ==================== WORK PROCESS ==================== -->
+        <section class="chapter" id="process" aria-labelledby="processTitle">
+          <div class="chapter__inner">
+            <header class="chapter__head">
+              <h2 class="chapter__title" id="processTitle" data-reveal data-reveal-delay="100">My Process</h2>
+            </header>
 
-          <div class="process">
-            <ol class="process__grid">
-              <li class="stage" data-reveal>
-                <div class="stage__card">
-                  <div class="stage__photo">
-                    <h3 class="stage__title">Discover</h3>
-                    <p class="stage__sub">Understand the idea</p>
-                    <p class="stage__text">I learn about your goals, requirements, audience, and vision to understand what you want to create.</p>
+            <div class="process">
+              <ol class="process__grid">
+                <li class="stage" data-reveal>
+                  <div class="stage__card">
+                    <div class="stage__photo">
+                      <h3 class="stage__title">Discover</h3>
+                      <p class="stage__sub">Understand the idea</p>
+                      <p class="stage__text">I learn about your goals, requirements, audience, and vision to understand
+                        what you want to create.</p>
+                    </div>
                   </div>
-                </div>
-              </li>
-              <li class="stage" data-reveal data-reveal-delay="100">
-                <div class="stage__card">
-                  <div class="stage__photo">
-                    <h3 class="stage__title">Plan &amp; Design</h3>
-                    <p class="stage__sub">Shape the concept</p>
-                    <p class="stage__text">I plan the structure, visuals, and user experience before bringing the idea to life.</p>
+                </li>
+                <li class="stage" data-reveal data-reveal-delay="100">
+                  <div class="stage__card">
+                    <div class="stage__photo">
+                      <h3 class="stage__title">Plan &amp; Design</h3>
+                      <p class="stage__sub">Shape the concept</p>
+                      <p class="stage__text">I plan the structure, visuals, and user experience before bringing the idea
+                        to life.</p>
+                    </div>
                   </div>
-                </div>
-              </li>
-              <li class="stage" data-reveal data-reveal-delay="200">
-                <div class="stage__card">
-                  <div class="stage__photo">
-                    <h3 class="stage__title">Create</h3>
-                    <p class="stage__sub">Build the experience</p>
-                    <p class="stage__text">I develop the website or application, or edit the video, with attention to detail and quality.</p>
+                </li>
+                <li class="stage" data-reveal data-reveal-delay="200">
+                  <div class="stage__card">
+                    <div class="stage__photo">
+                      <h3 class="stage__title">Create</h3>
+                      <p class="stage__sub">Build the experience</p>
+                      <p class="stage__text">I develop the website or application, or edit the video, with attention to
+                        detail and quality.</p>
+                    </div>
                   </div>
-                </div>
-              </li>
-              <li class="stage" data-reveal data-reveal-delay="300">
-                <div class="stage__card">
-                  <div class="stage__photo">
-                    <h3 class="stage__title">Refine</h3>
-                    <p class="stage__sub">Polish every detail</p>
-                    <p class="stage__text">I review the result, fix issues, improve the experience, and make final adjustments so the project feels polished, responsive, and ready to use.</p>
+                </li>
+                <li class="stage" data-reveal data-reveal-delay="300">
+                  <div class="stage__card">
+                    <div class="stage__photo">
+                      <h3 class="stage__title">Refine</h3>
+                      <p class="stage__sub">Polish every detail</p>
+                      <p class="stage__text">I review the result, fix issues, improve the experience, and make final
+                        adjustments so the project feels polished, responsive, and ready to use.</p>
+                    </div>
                   </div>
-                </div>
-              </li>
-            </ol>
+                </li>
+              </ol>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- ==================== CONTACT ====================
+        <!-- ==================== CONTACT ====================
            EDIT: swap the email placeholder for a real link:
              <a class="btn btn--accent" href="mailto:you@example.com">Email me</a>
       -->
-      <section class="chapter chapter--card" id="contact" aria-labelledby="contactTitle">
-        <div class="chapter__inner">
-          <div class="contact">
-            <h2 class="chapter__title contact__title" id="contactTitle" data-reveal data-reveal-delay="100">Contact Me</h2>
-            <p class="chapter__text" data-reveal data-reveal-delay="200">
-              Have a project in mind? I'm always open to discussing new ideas, creative projects, and
-              opportunities to collaborate.
-            </p>
-            <p class="chapter__text" data-reveal data-reveal-delay="300">
-              Whether you need a <span class="hl">portfolio website, a landing page, a mobile app, or video editing</span>,
-              feel free to get in touch.
-            </p>
+        <section class="chapter chapter--card" id="contact" aria-labelledby="contactTitle">
+          <div class="chapter__inner">
+            <div class="contact">
+              <h2 class="chapter__title contact__title" id="contactTitle" data-reveal data-reveal-delay="100">Contact Me
+              </h2>
+              <p class="chapter__text" data-reveal data-reveal-delay="200">
+                Have a project in mind? I'm always open to discussing new ideas, creative projects, and
+                opportunities to collaborate.
+              </p>
+              <p class="chapter__text" data-reveal data-reveal-delay="300">
+                Whether you need a <span class="hl">portfolio website, a landing page, a mobile app, or video
+                  editing</span>,
+                feel free to get in touch.
+              </p>
 
-            <!-- ============ START A PROJECT — enquiry form ============ -->
-            <section class="pform-section" id="start-project" aria-labelledby="pformTitle" data-reveal data-reveal-delay="100">
-              <header class="pform-section__head">
-                <h3 class="pform-section__title" id="pformTitle">Start a Project With Me</h3>
-              </header>
+              <!-- ============ START A PROJECT — enquiry form ============ -->
+              <section class="pform-section" id="start-project" aria-labelledby="pformTitle" data-reveal
+                data-reveal-delay="100">
+                <header class="pform-section__head">
+                  <h3 class="pform-section__title" id="pformTitle">Start a Project With Me</h3>
+                </header>
 
-              <form class="pform" id="projectForm" novalidate>
-                <div class="pform__grid">
-                  <div class="pform__field pform__field--full">
-                    <label class="pform__label" for="pfName">Client Name</label>
-                    <input class="pform__input" id="pfName" name="clientName" type="text" autocomplete="name" placeholder="Your full name" required aria-describedby="pfNameError">
-                    <p class="pform__error" id="pfNameError" aria-live="polite"></p>
-                  </div>
-
-                  <div class="pform__field">
-                    <label class="pform__label" for="pfEmail">Client Email</label>
-                    <input class="pform__input" id="pfEmail" name="clientEmail" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required aria-describedby="pfEmailError">
-                    <p class="pform__error" id="pfEmailError" aria-live="polite"></p>
-                  </div>
-
-                  <div class="pform__field">
-                    <label class="pform__label" for="pfPhone">Client WhatsApp Number</label>
-                    <input class="pform__input" id="pfPhone" name="clientPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91 00000 00000" required aria-describedby="pfPhoneError">
-                    <p class="pform__error" id="pfPhoneError" aria-live="polite"></p>
-                  </div>
-
-                  <fieldset class="pform__fieldset">
-                    <legend class="pform__label">Project Type</legend>
-                    <div class="pform__choices">
-                      <label class="pform__choice">
-                        <input type="radio" id="pfTypeWebsite" name="projectType" value="Website Development" data-price="$168–$210" required>
-                        <span class="pform__choice-text">Website Development</span>
-                      </label>
-                      <label class="pform__choice">
-                        <input type="radio" id="pfTypeVideo" name="projectType" value="Video Editing" data-price="$4.74–$6.32" required>
-                        <span class="pform__choice-text">Video Editing</span>
-                      </label>
-                      <label class="pform__choice">
-                        <input type="radio" id="pfTypeApp" name="projectType" value="App Development" data-price="$210–$315" required>
-                        <span class="pform__choice-text">App Development</span>
-                      </label>
+                <form class="pform" id="projectForm" novalidate>
+                  <div class="pform__grid">
+                    <div class="pform__field pform__field--full">
+                      <label class="pform__label" for="pfName">Client Name</label>
+                      <input class="pform__input" id="pfName" name="clientName" type="text" autocomplete="name"
+                        placeholder="Your full name" required aria-describedby="pfNameError">
+                      <p class="pform__error" id="pfNameError" aria-live="polite"></p>
                     </div>
-                    <p class="pform__error" id="pfTypeError" aria-live="polite"></p>
-                  </fieldset>
 
-                  <div class="pform__field pform__field--full">
-                    <label class="pform__label" for="pfDescription">Project Description</label>
-                    <textarea class="pform__textarea" id="pfDescription" name="projectDescription" rows="5" placeholder="Tell me about your goals, style, deadline, and anything else I should know." required aria-describedby="pfDescriptionError"></textarea>
-                    <p class="pform__error" id="pfDescriptionError" aria-live="polite"></p>
-                  </div>
+                    <div class="pform__field">
+                      <label class="pform__label" for="pfEmail">Client Email</label>
+                      <input class="pform__input" id="pfEmail" name="clientEmail" type="email" autocomplete="email"
+                        inputmode="email" placeholder="you@example.com" required aria-describedby="pfEmailError">
+                      <p class="pform__error" id="pfEmailError" aria-live="polite"></p>
+                    </div>
 
-                  <div class="pform__summary">
-                    <span class="pform__summary-label" id="pfPriceLabel">Estimated Cost</span>
-                    <output class="pform__summary-value is-placeholder" id="pfPrice" for="pfTypeWebsite pfTypeVideo pfTypeApp" aria-labelledby="pfPriceLabel" aria-live="polite">Select a project type</output>
-                  </div>
+                    <div class="pform__field">
+                      <label class="pform__label" for="pfPhone">Client WhatsApp Number</label>
+                      <input class="pform__input" id="pfPhone" name="clientPhone" type="tel" autocomplete="tel"
+                        inputmode="tel" placeholder="+91 00000 00000" required aria-describedby="pfPhoneError">
+                      <p class="pform__error" id="pfPhoneError" aria-live="polite"></p>
+                    </div>
 
-                  <div class="pform__actions">
-                    <button class="btn btn--accent" type="submit">
-                      Start Project
-                    </button>
+                    <fieldset class="pform__fieldset">
+                      <legend class="pform__label">Project Type</legend>
+                      <div class="pform__choices">
+                        <label class="pform__choice">
+                          <input type="radio" id="pfTypeWebsite" name="projectType" value="Website Development"
+                            data-price="$168–$210" required>
+                          <span class="pform__choice-text">Website Development</span>
+                        </label>
+                        <label class="pform__choice">
+                          <input type="radio" id="pfTypeVideo" name="projectType" value="Video Editing"
+                            data-price="$4.74–$6.32" required>
+                          <span class="pform__choice-text">Video Editing</span>
+                        </label>
+                        <label class="pform__choice">
+                          <input type="radio" id="pfTypeApp" name="projectType" value="App Development"
+                            data-price="$210–$315" required>
+                          <span class="pform__choice-text">App Development</span>
+                        </label>
+                      </div>
+                      <p class="pform__error" id="pfTypeError" aria-live="polite"></p>
+                    </fieldset>
+
+                    <div class="pform__field pform__field--full">
+                      <label class="pform__label" for="pfDescription">Project Description</label>
+                      <textarea class="pform__textarea" id="pfDescription" name="projectDescription" rows="5"
+                        placeholder="Tell me about your goals, style, deadline, and anything else I should know."
+                        required aria-describedby="pfDescriptionError"></textarea>
+                      <p class="pform__error" id="pfDescriptionError" aria-live="polite"></p>
+                    </div>
+
+                    <div class="pform__summary">
+                      <span class="pform__summary-label" id="pfPriceLabel">Estimated Cost</span>
+                      <output class="pform__summary-value is-placeholder" id="pfPrice"
+                        for="pfTypeWebsite pfTypeVideo pfTypeApp" aria-labelledby="pfPriceLabel"
+                        aria-live="polite">Select a project type</output>
+                    </div>
+
+                    <div class="pform__actions">
+                      <button class="btn btn--accent" type="submit">
+                        Start Project
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </form>
-            </section>
+                </form>
+              </section>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       </div>
     </div>
 
@@ -481,22 +534,28 @@
       <div class="footer__inner">
         <p class="footer__follow">Follow on</p>
         <nav class="footer__nav" aria-label="Social links">
-          <a class="footer__split footer__split--gmail split" href="mailto:iambhuvanesh.a@gmail.com" style="--font-width: 77">
+          <a class="footer__split footer__split--gmail split" href="mailto:iambhuvanesh.a@gmail.com"
+            style="--font-width: 77">
             <span class="footer__label">Gmail</span>
           </a>
-          <a class="footer__split footer__split--github split" href="https://github.com/imbhuvanesh" target="_blank" rel="noopener noreferrer" style="--font-width: 125">
+          <a class="footer__split footer__split--github split" href="https://github.com/imbhuvanesh" target="_blank"
+            rel="noopener noreferrer" style="--font-width: 125">
             <span class="footer__label">GitHub</span>
           </a>
-          <a class="footer__split footer__split--behance split" href="https://www.behance.net/bhuvanesha1" target="_blank" rel="noopener noreferrer">
+          <a class="footer__split footer__split--behance split" href="https://www.behance.net/bhuvanesha1"
+            target="_blank" rel="noopener noreferrer">
             <span class="footer__label">Behance</span>
           </a>
-          <a class="footer__split footer__split--linkedin split" href="https://www.linkedin.com/in/imbhuvanesh" target="_blank" rel="noopener noreferrer">
+          <a class="footer__split footer__split--linkedin split" href="https://www.linkedin.com/in/imbhuvanesh"
+            target="_blank" rel="noopener noreferrer">
             <span class="footer__label">LinkedIn</span>
           </a>
-          <a class="footer__split footer__split--instagram split" href="https://www.instagram.com/bhuvy._/" target="_blank" rel="noopener noreferrer">
+          <a class="footer__split footer__split--instagram split" href="https://www.instagram.com/bhuvy._/"
+            target="_blank" rel="noopener noreferrer">
             <span class="footer__label">Instagram</span>
           </a>
-          <a class="footer__split footer__split--coffee split" href="https://buymeacoffee.com/bhuvaneshh" target="_blank" rel="noopener noreferrer" style="--font-width: 93">
+          <a class="footer__split footer__split--coffee split" href="https://buymeacoffee.com/bhuvaneshh"
+            target="_blank" rel="noopener noreferrer" style="--font-width: 93">
             <span class="footer__label">Buy me a coffee</span>
           </a>
         </nav>
@@ -506,7 +565,11 @@
     <!-- ==================== LIGHTBOX ==================== -->
     <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Media preview" aria-hidden="true">
       <button type="button" class="lightbox__close" aria-label="Close preview">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+          aria-hidden="true">
+          <line x1="6" y1="6" x2="18" y2="18" />
+          <line x1="18" y1="6" x2="6" y2="18" />
+        </svg>
       </button>
       <div class="lightbox__media"></div>
     </div>
@@ -517,7 +580,8 @@
          the first section has scrolled past and hides again at the top.
     -->
     <button type="button" class="upbtn" id="upBtn" aria-label="Go to previous section" title="Previous section">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" aria-hidden="true">
         <polyline points="6 15 12 9 18 15"></polyline>
       </svg>
     </button>
@@ -533,7 +597,8 @@
   -->
   <aside class="pcnotice" id="pcNotice" role="status" aria-live="polite">
     <span class="pcnotice__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"
+        stroke-linejoin="round">
         <rect x="2" y="3" width="20" height="13" rx="2"></rect>
         <path d="M8 20h8M12 16v4"></path>
       </svg>
@@ -543,7 +608,8 @@
       <p class="pcnotice__text">Open this site on a desktop or laptop for the full experience.</p>
     </div>
     <button type="button" class="pcnotice__close" aria-label="Dismiss notice">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        aria-hidden="true">
         <line x1="6" y1="6" x2="18" y2="18"></line>
         <line x1="18" y1="6" x2="6" y2="18"></line>
       </svg>
@@ -559,9 +625,19 @@
 
   <noscript>
     <style>
-      .preloader { display: none !important; }
-      body.is-loading { overflow: auto !important; height: auto !important; position: static !important; }
-      .site { opacity: 1 !important; }
+      .preloader {
+        display: none !important;
+      }
+
+      body.is-loading {
+        overflow: auto !important;
+        height: auto !important;
+        position: static !important;
+      }
+
+      .site {
+        opacity: 1 !important;
+      }
     </style>
   </noscript>
 
@@ -590,4 +666,5 @@
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js" defer></script>
   <script src="script.js" defer></script>
 </body>
+
 </html>
