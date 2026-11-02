@@ -86,7 +86,13 @@
   /* shared layout containers + viewport-unit shorthands.
      --vh is the small viewport height (no mobile browser chrome);
      --dvh is the dynamic one (grows/shrinks with the toolbar). */
-  --maxw: 1180px;
+  --maxw: min(1320px, 88vw);
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --card-peek-height: 52px;
+  --card-pull-y: 0px;
   --vh: 100svh;
   --dvh: 100dvh;
 }
@@ -501,57 +507,98 @@ em { font-style: normal; color: inherit; }
   z-index: 20;
 }
 
-/* One-time first-time pull peek hint: smoothly nudges into view once all hero effects finish */
+/* ============================================================
+   STACKED CARDS & ADVANCED CARD PULL ENGINE (Cross-Platform)
+   ============================================================ */
 .stack > #about.chapter--card {
-  transform: translate3d(0, 0, 0);
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 20;
+  transform: translate3d(0, var(--card-pull-y, 0px), 0);
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
   will-change: transform;
+  touch-action: pan-y;
 }
 
+/* Active Dragging Mode: Zero transition latency, elevated tactile depth */
+.stack > #about.chapter--card.is-dragging {
+  transition: none !important;
+  box-shadow: 0 -36px 90px rgba(0, 0, 0, 0.85);
+}
+
+/* One-time first-time pull peek hint: nudges into view once hero effects finish */
 .stack > #about.chapter--card.has-pull-hint {
-  transform: translate3d(0, -48px, 0);
+  --card-pull-y: calc(-1 * var(--card-peek-height, 52px));
+}
+
+/* REQUIREMENT: Initial Collapsed State — Never reveal details on initial load */
+.stack > #about.chapter--card.is-collapsed .chapter__inner {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+  transform: translate3d(0, 32px, 0);
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.45s ease;
+}
+
+/* Expanded State: Smoothly revealed upon intentional user interaction */
+.stack > #about.chapter--card.is-expanded .chapter__inner,
+.stack > #about.chapter--card:not(.is-collapsed) .chapter__inner {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translate3d(0, 0, 0);
+  transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ============================================================
-   STACKED CARD PULL INDICATOR (One-time intro hint)
+   STACKED CARD PULL HANDLE (Mobile Touch + Desktop Mouse)
    ============================================================ */
 .card-pull {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 48px;
+  height: var(--card-peek-height, 52px);
+  min-height: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 5px;
-  cursor: pointer;
-  z-index: 10;
-  pointer-events: none;
+  cursor: grab;
+  z-index: 30;
+  pointer-events: auto;
   user-select: none;
   -webkit-user-select: none;
   opacity: 0;
   transform: translateY(6px);
   transition: opacity 0.35s ease, transform 0.35s ease;
-  touch-action: pan-y;
+  touch-action: none; /* Handle takes full control during drag */
+  outline: none;
+  padding: 8px 16px;
 }
 
-/* Appears only during the one-time first-time pull hint */
-.has-pull-hint .card-pull {
+.stack > #about.chapter--card.is-dragging .card-pull {
+  cursor: grabbing !important;
+}
+
+/* Hint visible state */
+.has-pull-hint .card-pull,
+.is-expanded .card-pull {
   opacity: 1;
-  pointer-events: auto;
   transform: translateY(0);
 }
 
 /* Tactile grab bar pill */
 .card-pull__handle {
-  width: 42px;
-  height: 4px;
+  width: 44px;
+  height: 5px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  transition: width 0.25s ease, background-color 0.25s ease;
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  transition: width 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
 }
 
 /* Subtle label with icon */
@@ -560,28 +607,33 @@ em { font-style: normal; color: inherit; }
   align-items: center;
   gap: 6px;
   font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(242, 240, 234, 0.72);
+  color: rgba(242, 240, 234, 0.76);
   transition: color 0.25s ease;
 }
 
 .card-pull__icon {
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
   stroke: currentColor;
   stroke-width: 2.5;
-  transition: transform 0.25s ease;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* In expanded state, chevron points down for collapse cue */
+.stack > #about.chapter--card.is-expanded .card-pull__icon {
+  transform: rotate(180deg);
 }
 
 /* Gentle animated pull nudge during the one-time intro hint */
 .card-pull.is-nudging {
-  animation: cardPullNudge 2.6s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  animation: cardAutoPullNudge 2.6s cubic-bezier(0.25, 1, 0.5, 1) infinite;
 }
 
-@keyframes cardPullNudge {
+@keyframes cardAutoPullNudge {
   0%, 100% {
     transform: translateY(0);
   }
@@ -599,11 +651,11 @@ em { font-style: normal; color: inherit; }
   }
 }
 
-/* Hover state */
+/* Hover and focus states */
 .card-pull:hover .card-pull__handle,
 .card-pull:focus-visible .card-pull__handle {
-  width: 54px;
-  background: rgba(255, 255, 255, 0.85);
+  width: 58px;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .card-pull:hover .card-pull__label,
@@ -616,19 +668,31 @@ em { font-style: normal; color: inherit; }
   transform: translateY(-2px);
 }
 
-/* Once dismissed: completely removed, returns to normal */
+.stack > #about.chapter--card.is-expanded .card-pull:hover .card-pull__icon,
+.stack > #about.chapter--card.is-expanded .card-pull:focus-visible .card-pull__icon {
+  transform: rotate(180deg) translateY(-2px);
+}
+
+.card-pull:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: -3px;
+  border-radius: clamp(20px, 3vw, 32px) clamp(20px, 3vw, 32px) 0 0;
+}
+
+/* Once fully dismissed in normal flow, gently hide handle without affecting layout */
 body.card-pull-dismissed .card-pull,
 .card-pull.is-dismissed {
-  display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
+  transition: opacity 0.35s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .card-pull.is-nudging {
     animation: none;
   }
-  .stack > #about.chapter--card {
+  .stack > #about.chapter--card,
+  .stack > #about.chapter--card .chapter__inner {
     transition: none !important;
   }
 }
@@ -699,7 +763,7 @@ body.card-pull-dismissed .card-pull,
   width: 100%;
   max-width: var(--maxw);
   margin: 0 auto;
-  will-change: transform, opacity, filter;
+  will-change: transform, opacity;
 }
 
 .chapter__head {
@@ -1274,6 +1338,10 @@ body.card-pull-dismissed .card-pull,
 }
 
 .workshowcase__tab {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: clamp(0.5rem, 1.2vw, 0.65rem) clamp(1.25rem, 2.5vw, 1.85rem);
   background: transparent;
   color: var(--muted);
@@ -2380,6 +2448,11 @@ html.has-custom-cursor body * { cursor: none; }
 }
 
 .pcnotice__close {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
@@ -2438,7 +2511,7 @@ html.has-custom-cursor body * { cursor: none; }
 
   .skill-icon { height: clamp(34px, 9vw, 42px); }
 
-  .upbtn { width: 42px; height: 42px; }
+  .upbtn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   .upbtn svg { width: 18px; height: 18px; }
 
   /* the up-button is shorter here — keep the toast clear of it */

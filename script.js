@@ -472,9 +472,14 @@
         var inner = inners[i];
         if (!inner) continue;
 
+        // Never override opacity/transform on #about while in collapsed state
+        if (chapters[i].id === 'about' && chapters[i].classList.contains('is-collapsed')) {
+          continue;
+        }
+
         var rect = chapters[i].getBoundingClientRect();
 
-        // how much of a screen this section covers right now (0 → 1).
+        // how much of a screen this section covers right now (0 -> 1).
         // Using coverage instead of raw distance keeps tall sections
         // fully readable on small screens, where a section can be taller
         // than the viewport.
@@ -483,11 +488,11 @@
 
         var fade = clamp01((0.85 - coverage) / 0.85);
         var below = rect.top + rect.height / 2 >= vh / 2;
-        var scale = below ? 1 - 0.16 * fade : 1 + 0.13 * fade;
+        var scale = below ? 1 - 0.14 * fade : 1 + 0.10 * fade;
 
         inner.style.opacity = (1 - fade).toFixed(3);
         inner.style.transform = 'scale(' + scale.toFixed(3) + ')';
-        inner.style.filter = fade > 0.02 ? 'blur(' + (fade * 7).toFixed(2) + 'px)' : 'none';
+        // PERFORMANCE OPTIMIZATION: Filter blur removed per-frame to eliminate GPU repaint lag
       }
 
       // slow parallax on the shared background photo
@@ -767,10 +772,12 @@
      lifts first)
   --------------------------------------------------------- */
   /* ---------------------------------------------------------
-     Stacked Card Pull Effect (One-Time Intro Hint)
-     Shows an inviting pull handle & animated nudge on the hero
-     stacked card ONE TIME ONLY on first load so the visitor
-     knows to scroll, and after that returns to completely normal.
+     Cross-Platform Card Pull Engine (Mobile Touch + PC Mouse)
+     Strictly hides card details on first launch.
+     Provides smooth auto-pull peek teaser after hero effects.
+     Supports bi-directional drag (drag up to expand, drag down
+     to collapse), click/tap toggle, keyboard accessibility, and
+     seamless scroll integration without layout shifts.
   --------------------------------------------------------- */
   var cardPullDismissed = false;
 
@@ -785,14 +792,23 @@
     var about = doc.getElementById('about');
     if (about) {
       about.classList.remove('has-pull-hint');
-      about.classList.remove('is-peek-ready');
+      about.classList.remove('is-collapsed');
+      about.classList.remove('is-dragging');
+      about.style.removeProperty('--card-pull-y');
+      var inner = about.querySelector('.chapter__inner');
+      if (inner) {
+        inner.style.removeProperty('opacity');
+        inner.style.removeProperty('visibility');
+        inner.style.removeProperty('transform');
+      }
     }
 
-    var pulls = slice(doc.querySelectorAll('.card-pull'));
-    pulls.forEach(function (p) {
-      p.classList.add('is-dismissed');
-      p.classList.remove('is-nudging');
-    });
+    var pull = doc.getElementById('aboutCardPull');
+    if (pull) {
+      pull.classList.add('is-dismissed');
+      pull.classList.remove('is-nudging');
+      pull.setAttribute('aria-expanded', 'true');
+    }
   }
   window.dismissCardPull = dismissCardPull;
 
@@ -806,78 +822,216 @@
     } catch (e) {}
 
     var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
-    if (alreadyDismissed || scrollY > 20) {
+    if (alreadyDismissed || scrollY > 25) {
       dismissCardPull();
       return;
     }
 
-    // First time only: show the little pull peek hint
+    // First time only: show the little pull peek hint.
+    // CRITICAL: Card details strictly remain collapsed!
     var about = doc.getElementById('about');
     if (about) {
       about.classList.add('has-pull-hint');
-      var pull = about.querySelector('.card-pull');
+      var pull = doc.getElementById('aboutCardPull') || about.querySelector('.card-pull');
       if (pull) pull.classList.add('is-nudging');
     }
   }
   window.markHeroEffectsDone = markHeroEffectsDone;
 
-  function initCardPullEffect() {
+  function initCardPullEffect(driver) {
     var about = doc.getElementById('about');
     if (!about) return;
 
-    var pull = about.querySelector('.card-pull');
+    var pull = doc.getElementById('aboutCardPull') || about.querySelector('.card-pull');
+    var pullText = pull ? pull.querySelector('.card-pull__text') : null;
 
-    // On any scroll or touch down the page, dismiss the hint and make it completely normal
-    window.addEventListener('scroll', function () {
-      var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
-      if (scrollY > 15) {
-        dismissCardPull();
+    var isCollapsed = true;
+    var isDragging = false;
+    var isAnimating = false;
+    var startY = 0;
+    var startX = 0;
+    var startTime = 0;
+    var currentDiffY = 0;
+    var PEEK_HEIGHT = 52; // matches --card-peek-height
+
+    function setExpandedState(expanded, animateScroll) {
+      if (isAnimating) return;
+      isCollapsed = !expanded;
+
+      if (expanded) {
+        about.classList.remove('is-collapsed');
+        about.classList.add('is-expanded');
+        about.style.removeProperty('--card-pull-y');
+        if (pull) {
+          pull.classList.remove('is-nudging');
+          pull.setAttribute('aria-expanded', 'true');
+          pull.setAttribute('aria-label', 'Collapse details');
+          if (pullText) pullText.textContent = 'Collapse';
+        }
+
+        if (animateScroll) {
+          isAnimating = true;
+          var aboutTop = about.getBoundingClientRect().top + (window.pageYOffset || doc.documentElement.scrollTop);
+          window.scrollTo({
+            top: aboutTop,
+            behavior: reducedMotion.matches ? 'auto' : 'smooth'
+          });
+          setTimeout(function () {
+            isAnimating = false;
+          }, 600);
+        }
+      } else {
+        about.classList.add('is-collapsed');
+        about.classList.remove('is-expanded');
+        about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
+        if (pull) {
+          pull.setAttribute('aria-expanded', 'false');
+          pull.setAttribute('aria-label', 'Pull to view details');
+          if (pullText) pullText.textContent = 'Pull for details';
+        }
+
+        if (animateScroll) {
+          isAnimating = true;
+          window.scrollTo({
+            top: 0,
+            behavior: reducedMotion.matches ? 'auto' : 'smooth'
+          });
+          setTimeout(function () {
+            isAnimating = false;
+          }, 600);
+        }
       }
-    }, { passive: true });
+    }
+
+    // Centralized scroll driver integration: eliminates redundant scroll listeners
+    if (driver && driver.add) {
+      driver.add(function (vh) {
+        var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
+
+        // When scrolling down past 30px, reveal card details without jumping
+        if (scrollY > 30 && isCollapsed) {
+          setExpandedState(true, false);
+        }
+
+        // When scrolled deep into the page (past half hero), dismiss hint permanently
+        if (scrollY > vh * 0.5 && !cardPullDismissed) {
+          dismissCardPull();
+        }
+      });
+    }
 
     if (pull) {
-      function scrollToCard() {
-        dismissCardPull();
-        var cardTop = about.getBoundingClientRect().top + (window.pageYOffset || doc.documentElement.scrollTop);
-        window.scrollTo({
-          top: cardTop,
-          behavior: 'smooth'
-        });
+      function onPointerDown(e) {
+        // Only primary mouse button or touch/pen
+        if (e.button !== undefined && e.button !== 0) return;
+        if (isAnimating) return;
+
+        isDragging = true;
+        startY = e.clientY;
+        startX = e.clientX;
+        startTime = Date.now();
+        currentDiffY = 0;
+
+        about.classList.add('is-dragging');
+        if (pull.setPointerCapture) {
+          try {
+            pull.setPointerCapture(e.pointerId);
+          } catch (err) {}
+        }
       }
 
-      var startY = 0;
-      var isDown = false;
+      function onPointerMove(e) {
+        if (!isDragging) return;
 
-      pull.addEventListener('pointerdown', function (e) {
-        if (e.button !== undefined && e.button !== 0) return;
-        startY = e.clientY;
-        isDown = true;
-      });
+        var dy = startY - e.clientY; // positive = dragging upward
+        var dx = Math.abs(startX - e.clientX);
 
-      pull.addEventListener('pointermove', function (e) {
-        if (!isDown) return;
-        var diffY = startY - e.clientY;
-        if (diffY > 12) {
-          isDown = false;
-          scrollToCard();
+        // If predominantly horizontal gesture, let browser handle it
+        if (dx > Math.abs(dy) && Math.abs(dy) < 8) return;
+
+        currentDiffY = dy;
+
+        if (isCollapsed) {
+          // Dragging upward from peek (-PEEK_HEIGHT)
+          var pullUp = Math.max(0, dy);
+          var newY = -PEEK_HEIGHT - pullUp;
+          about.style.setProperty('--card-pull-y', newY + 'px');
+        } else {
+          // Dragging downward from expanded (0)
+          var pullDown = Math.min(0, dy); // dy is negative when dragging downward
+          about.style.setProperty('--card-pull-y', (-pullDown) + 'px');
         }
-      });
+      }
 
-      pull.addEventListener('pointerup', function () {
-        if (isDown) {
-          isDown = false;
-          scrollToCard();
+      function onPointerUp(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        about.classList.remove('is-dragging');
+
+        if (pull.releasePointerCapture) {
+          try {
+            pull.releasePointerCapture(e.pointerId);
+          } catch (err) {}
         }
-      });
 
-      pull.addEventListener('pointercancel', function () {
-        isDown = false;
-      });
+        var elapsed = Date.now() - startTime;
+        var velocity = currentDiffY / (elapsed || 1);
+        var distance = Math.abs(currentDiffY);
 
+        if (distance < 8) {
+          // Intentional Click or Tap toggle!
+          if (isCollapsed) {
+            setExpandedState(true, true);
+          } else {
+            setExpandedState(false, true);
+          }
+          return;
+        }
+
+        if (isCollapsed) {
+          // Pulled up past threshold (36px) or flicked up
+          if (currentDiffY > 36 || velocity > 0.35) {
+            setExpandedState(true, true);
+          } else {
+            // Spring back to peek state
+            about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
+          }
+        } else {
+          // Pulled down past threshold (-36px) or flicked down
+          if (currentDiffY < -36 || velocity < -0.35) {
+            setExpandedState(false, true);
+          } else {
+            // Spring back to expanded state
+            about.style.setProperty('--card-pull-y', '0px');
+          }
+        }
+      }
+
+      function onPointerCancel(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        about.classList.remove('is-dragging');
+        if (isCollapsed) {
+          about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
+        } else {
+          about.style.setProperty('--card-pull-y', '0px');
+        }
+      }
+
+      pull.addEventListener('pointerdown', onPointerDown);
+      pull.addEventListener('pointermove', onPointerMove);
+      pull.addEventListener('pointerup', onPointerUp);
+      pull.addEventListener('pointercancel', onPointerCancel);
+
+      // Keyboard accessible Enter / Space
       pull.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          scrollToCard();
+          if (isCollapsed) {
+            setExpandedState(true, true);
+          } else {
+            setExpandedState(false, true);
+          }
         }
       });
     }
@@ -1684,7 +1838,10 @@
   var hero = document.getElementById('hero');
   var scene = document.getElementById('heroScene') || (hero && hero.querySelector('.hero__scene'));
   if (!hero || !scene) return;
+var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMedia('(any-pointer: fine)').matches;
+  if (!finePointer) return;
 
+  
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reducedMotion.matches) return;
 
