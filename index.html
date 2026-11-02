@@ -35,19 +35,17 @@
     <!-- ============ STACKED CARDS — the hero pins while the About card slides over it ============ -->
     <div class="stack">
     <section class="hero" id="hero">
-      <!-- the scene tilts as one in 3D; each layer sits at its own depth
-           (translateZ) so the near copy swings further than the far photo -->
-      <div class="hero__scene">
-        <div class="hero__bg" aria-hidden="true">
-          <img src="photos/hero bg.png" alt="" class="hero__bg-img">
-        </div>
+      <div class="hero__scene" id="heroScene">
+        <!-- Flower Layer -->
+        <div class="flower-container" id="flowerContainer" aria-hidden="true"></div>
 
-        <div class="hero__inner">
-          <h1 class="hero__title" data-reveal data-reveal-delay="0">
-            <span class="sr-only">Bhuvanesh — Developer &amp; Video Editor</span>
-            <span class="hero__cycle" id="heroCycle" aria-hidden="true"><span class="hero__word">BHUVANESH</span></span>
-          </h1>
-          <p class="hero__tagline" data-reveal data-reveal-delay="200">Learning and growing everyday!</p>
+        <!-- Hero Image -->
+        <div class="hero-wrapper">
+          <h1 class="sr-only">Bhuvanesh — Developer &amp; Video Editor</h1>
+          <div class="hero-media">
+            <img src="hero.png" alt="Hero Visual" class="hero-image" id="heroImage">
+            <span class="hero-shine" aria-hidden="true"></span>
+          </div>
         </div>
       </div>
     </section>
@@ -566,6 +564,9 @@
       document.documentElement.classList.add('force-loaded');
       document.body.classList.remove('is-loading');
       document.body.classList.add('is-revealed');
+      if (typeof window.startFloralHeroReveal === 'function') {
+        window.startFloralHeroReveal();
+      }
     };
     window.__preloaderFailsafe = setTimeout(window.__forceReveal, 8000);
   </script>

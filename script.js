@@ -777,6 +777,10 @@
     initMarquee();
     initSplitText();
     initFooterTrail();
+
+    if (typeof window.startFloralHeroReveal === 'function') {
+      window.startFloralHeroReveal();
+    }
   }
 
   /* ---------------------------------------------------------
@@ -1238,23 +1242,233 @@
 })();
 
 
+/* ==================== MINIMAL FLORAL HERO REVEAL ====================
+   Uses ONLY approved flower images: 1, 2, 4, 5, 6, 7, 8, 9
+   Strictly excludes: 3, 10, 11, 12, 13, 14
+   ==================================================================== */
+(function () {
+  'use strict';
+
+  // Master Configuration
+  const CONFIG = {
+    initialDelay: 2000,         // Strict 2-second wait after hero reveal
+    staggerInterval: 115,       // Progressive stagger delay between flowers (ms)
+    jitter: 35,                 // Organic random variation (ms)
+    minSizeDesktop: 210,        // Generous size to fill the page with little space
+    maxSizeDesktop: 310,
+    minSizeMobile: 120,
+    maxSizeMobile: 190,
+  };
+
+  // ONLY approved flower images (1, 2, 4, 5, 6, 7, 8, 9)
+  // Strictly excluding 3, 10, 11, 12, 13, 14
+  const APPROVED_FLOWER_ASSETS = [
+    'flower/one.png',    // 1: White/Yellow Frangipani
+    'flower/two.png',    // 2: Pink Gerbera
+    'flower/four.png',   // 4: White/Yellow Daisy
+    'flower/five.png',   // 5: Pink/Yellow Plumeria
+    'flower/six.png',    // 6: Pink Lotus
+    'flower/seven.png',  // 7: Deep Red Rose
+    'flower/eight.png',  // 8: Blue Blossom
+    'flower/nine.png'    // 9: Bright Sunflower
+  ];
+
+  // Helper utilities
+  const getRandom = (min, max) => Math.random() * (max - min) + min;
+  const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+  const isMobile = () => window.innerWidth < 768;
+
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Dense scatter zones across the entire screen leaving only a little bit of space
+  const DENSE_SCATTER_ZONES = [
+    // Top border row (8 zones spanning left to right)
+    { x: [2, 9],   y: [3, 13],  sizeMult: 1.15 },
+    { x: [14, 22], y: [2, 11],  sizeMult: 1.0  },
+    { x: [27, 35], y: [2, 11],  sizeMult: 1.05 },
+    { x: [40, 48], y: [2, 10],  sizeMult: 1.0  },
+    { x: [52, 60], y: [2, 10],  sizeMult: 1.0  },
+    { x: [65, 73], y: [2, 11],  sizeMult: 1.05 },
+    { x: [78, 86], y: [2, 11],  sizeMult: 1.0  },
+    { x: [91, 98], y: [3, 13],  sizeMult: 1.15 },
+
+    // Upper-mid row (framing top of hero visual)
+    { x: [7, 16],  y: [18, 29], sizeMult: 1.05 },
+    { x: [20, 29], y: [16, 27], sizeMult: 0.95 },
+    { x: [34, 44], y: [15, 25], sizeMult: 0.92 },
+    { x: [56, 66], y: [15, 25], sizeMult: 0.92 },
+    { x: [71, 80], y: [16, 27], sizeMult: 0.95 },
+    { x: [84, 93], y: [18, 29], sizeMult: 1.05 },
+
+    // Mid flanks (left & right sides of hero visual)
+    { x: [2, 10],  y: [36, 52], sizeMult: 1.15 },
+    { x: [11, 20], y: [38, 54], sizeMult: 1.0  },
+    { x: [80, 89], y: [38, 54], sizeMult: 1.0  },
+    { x: [90, 98], y: [36, 52], sizeMult: 1.15 },
+
+    // Lower-mid row (framing bottom of hero visual)
+    { x: [7, 16],  y: [63, 75], sizeMult: 1.05 },
+    { x: [20, 29], y: [65, 77], sizeMult: 0.95 },
+    { x: [34, 44], y: [68, 80], sizeMult: 0.95 },
+    { x: [56, 66], y: [68, 80], sizeMult: 0.95 },
+    { x: [71, 80], y: [65, 77], sizeMult: 0.95 },
+    { x: [84, 93], y: [63, 75], sizeMult: 1.05 },
+
+    // Bottom border row (8 zones spanning left to right)
+    { x: [2, 9],   y: [87, 97], sizeMult: 1.15 },
+    { x: [14, 22], y: [89, 98], sizeMult: 1.0  },
+    { x: [27, 35], y: [89, 98], sizeMult: 1.05 },
+    { x: [40, 48], y: [90, 99], sizeMult: 1.05 },
+    { x: [52, 60], y: [90, 99], sizeMult: 1.05 },
+    { x: [65, 73], y: [89, 98], sizeMult: 1.05 },
+    { x: [78, 86], y: [89, 98], sizeMult: 1.0  },
+    { x: [91, 98], y: [87, 97], sizeMult: 1.15 }
+  ];
+
+  let flowerElements = [];
+
+  /**
+   * Builds the densely scattered flower elements across the entire webpage.
+   * All flowers are initially completely hidden.
+   */
+  function createDenseFloralCanvas() {
+    const container = document.getElementById('flowerContainer');
+    if (!container) return;
+
+    container.innerHTML = '';
+    flowerElements = [];
+
+    // Cycle through approved flowers (1, 2, 4, 5, 6, 7, 8, 9)
+    let pool = shuffle(APPROVED_FLOWER_ASSETS);
+
+    DENSE_SCATTER_ZONES.forEach(zone => {
+      if (pool.length === 0) {
+        pool = shuffle(APPROVED_FLOWER_ASSETS);
+      }
+      const asset = pool.pop();
+
+      // 1. Randomize position within sector
+      const posX = getRandom(zone.x[0], zone.x[1]).toFixed(1);
+      const posY = getRandom(zone.y[0], zone.y[1]).toFixed(1);
+
+      // 2. Randomize rotation (-180deg to +180deg)
+      const rotation = getRandomInt(-180, 180);
+      const rotStart = rotation + getRandomInt(-30, 30);
+
+      // 3. Flower size (large enough to fill the page leaving only little space)
+      const minSize = isMobile() ? CONFIG.minSizeMobile : CONFIG.minSizeDesktop;
+      const maxSize = isMobile() ? CONFIG.maxSizeMobile : CONFIG.maxSizeDesktop;
+      const rawSize = getRandom(minSize, maxSize) * (zone.sizeMult || 1);
+      const size = Math.round(rawSize);
+
+      const opacity = getRandom(0.92, 1.0).toFixed(2);
+
+      // Create DOM node
+      const el = document.createElement('div');
+      el.className = 'flower-node';
+      el.style.left = `${posX}%`;
+      el.style.top = `${posY}%`;
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+      el.style.setProperty('--rot', `${rotation}deg`);
+      el.style.setProperty('--rot-start', `${rotStart}deg`);
+      el.style.setProperty('--final-opacity', opacity);
+
+      const img = document.createElement('img');
+      img.src = asset;
+      img.alt = 'Floral Bloom';
+      img.draggable = false;
+
+      el.appendChild(img);
+      container.appendChild(el);
+      flowerElements.push(el);
+    });
+  }
+
+  /**
+   * Orchestrates the reveal animation:
+   * 1. Initially, keeps all flower images hidden.
+   * 2. Waits 2 seconds after the hero is revealed.
+   * 3. Gradually reveals the flowers one by one using smooth fade-in animations.
+   * 4. Once revealed, they settle in place without floating.
+   */
+  function startRevealAnimation() {
+    flowerElements.forEach(el => {
+      el.classList.remove('is-revealed');
+    });
+
+    // Shuffle reveal order so flowers bloom organically across the whole page
+    const sequence = shuffle(flowerElements);
+
+    // REQUIREMENT: Wait 2 seconds after page loads / reveal
+    setTimeout(() => {
+      // REQUIREMENT: Gradually reveal flowers one by one
+      sequence.forEach((flower, index) => {
+        const delay = (index * CONFIG.staggerInterval) + getRandom(0, CONFIG.jitter);
+
+        setTimeout(() => {
+          flower.classList.add('is-revealed');
+        }, delay);
+      });
+    }, CONFIG.initialDelay);
+  }
+
+  let animationTriggered = false;
+  function triggerReveal() {
+    if (animationTriggered) return;
+    animationTriggered = true;
+    startRevealAnimation();
+  }
+
+  // Expose globally so initSite() or preloader exit triggers it directly
+  window.startFloralHeroReveal = triggerReveal;
+
+  function init() {
+    createDenseFloralCanvas();
+
+    // Only start the effect once the preloader has lifted and the site is revealed.
+    if (document.body.classList.contains('is-revealed') || !document.getElementById('preloader')) {
+      triggerReveal();
+    } else {
+      const observer = new MutationObserver(() => {
+        if (document.body.classList.contains('is-revealed')) {
+          observer.disconnect();
+          triggerReveal();
+        }
+      });
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+
 /* ==================== HERO 3D PARALLAX ==================== */
 (function () {
   'use strict';
 
   var hero = document.getElementById('hero');
-  var scene = hero && hero.querySelector('.hero__scene');
+  var scene = document.getElementById('heroScene') || (hero && hero.querySelector('.hero__scene'));
   if (!hero || !scene) return;
 
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reducedMotion.matches) return;
 
-  /* Only these two numbers are written from JS — the tilt angles and the
-     per-layer drift both derive from them in CSS, so nothing here fights
-     the transforms declared in the stylesheet. */
   var nx = 0;   // rendered, -1 (left) → 1 (right)
   var ny = 0;   // rendered, -1 (top)  → 1 (bottom)
-  var tx = 0;   // what the pointer is asking for
+  var tx = 0;   // target from pointer
   var ty = 0;
   var raf = null;
 
@@ -1264,11 +1478,10 @@
   }
 
   function tick() {
-    nx += (tx - nx) * 0.09;
-    ny += (ty - ny) * 0.09;
+    nx += (tx - nx) * 0.08;
+    ny += (ty - ny) * 0.08;
 
-    // settled: draw the final frame and park the loop
-    if (Math.abs(tx - nx) < 0.001 && Math.abs(ty - ny) < 0.001) {
+    if (Math.abs(tx - nx) < 0.0005 && Math.abs(ty - ny) < 0.0005) {
       nx = tx;
       ny = ty;
       write();
@@ -1287,15 +1500,16 @@
   function onMove(e) {
     if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
 
-    var r = hero.getBoundingClientRect();
-    if (!r.width || !r.height) return;
+    var vw = window.innerWidth || document.documentElement.clientWidth;
+    var vh = window.innerHeight || document.documentElement.clientHeight;
+    if (!vw || !vh) return;
 
-    tx = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width) * 2 - 1));
-    ty = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height) * 2 - 1));
+    // Full-screen normalized coordinates (-1 left/top to +1 right/bottom) across entire viewport
+    tx = Math.max(-1, Math.min(1, (e.clientX / vw) * 2 - 1));
+    ty = Math.max(-1, Math.min(1, (e.clientY / vh) * 2 - 1));
     run();
   }
 
-  /* ease back to the flat, centred resting state */
   function rest() {
     tx = 0;
     ty = 0;
@@ -1311,10 +1525,16 @@
     scene.style.removeProperty('--hero-ny');
   }
 
-  hero.addEventListener('pointermove', onMove, { passive: true });
-  hero.addEventListener('pointerleave', rest, { passive: true });
+  window.addEventListener('pointermove', function (e) {
+    var r = hero.getBoundingClientRect();
+    if (r.bottom > 0 && r.top < window.innerHeight) {
+      onMove(e);
+    }
+  }, { passive: true });
 
-  /* no point easing a tilt nobody can see */
+  window.addEventListener('pointerleave', rest, { passive: true });
+  document.addEventListener('mouseleave', rest, { passive: true });
+
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (entries) {
       if (!entries[0].isIntersecting) rest();
