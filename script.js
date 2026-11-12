@@ -269,6 +269,8 @@
   var resourcesDone = false;
   var introDone = false;
   var shownProgress = 0;
+  var lastRatioCheck = -1000;
+  var cachedRatio = 0;
 
   if (doc.fonts && doc.fonts.ready && doc.fonts.ready.then) {
     doc.fonts.ready.then(function () { fontsReady = true; }, function () { fontsReady = true; });
@@ -288,12 +290,8 @@
 
     for (var i = 0; i < imgs.length; i++) {
       var img = imgs[i];
-      // Lazy images below the fold never start loading while the preloader
-      // locks the page, so counting them would stall progress until HARD_CAP.
       if (!img.complete && img.getAttribute('loading') === 'lazy') continue;
       total++;
-      // `complete` also covers broken images — otherwise a single 404
-      // would keep the preloader alive until the hard cap.
       if (img.complete) done++;
     }
 
@@ -302,7 +300,13 @@
 
   function progressTick(now) {
     var elapsed = now - startTime;
-    var ratio = imageRatio();
+    if (now - lastRatioCheck >= 150 || cachedRatio < 1) {
+      if (now - lastRatioCheck >= 150) {
+        cachedRatio = imageRatio();
+        lastRatioCheck = now;
+      }
+    }
+    var ratio = cachedRatio;
 
     if (windowLoaded && fontsReady && ratio === 1) resourcesDone = true;
     if (elapsed > HARD_CAP) resourcesDone = true;
@@ -360,6 +364,7 @@
         body.classList.remove('is-loading');
         body.classList.add('is-revealed');
         preloader.classList.add('is-hidden');
+        initSiteOnce();
         return wait(quick ? 200 : 600);
       })
       .then(function () {
@@ -374,7 +379,6 @@
         if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
         preloader = null;
         preloaderVideo = null;
-        initSite();
         cleanup();
       });
   }
@@ -463,26 +467,27 @@
     var inners = chapters.map(function (c) { return c.querySelector('.chapter__inner') || c.firstElementChild; });
     var bgImg = doc.querySelector('.chapters__bg-img');
     var chaptersWrap = doc.querySelector('.chapters');
+    var lastBgShift = null;
 
     driver.add(function (vh) {
       if (reducedMotion.matches) return;
 
-      // zoom each section as it travels through the viewport
+      // Batch all DOM layout reads BEFORE mutating styles to avoid forced reflows
+      var rects = new Array(chapters.length);
+      var collapsed = new Array(chapters.length);
       for (var i = 0; i < chapters.length; i++) {
-        var inner = inners[i];
-        if (!inner) continue;
+        collapsed[i] = chapters[i].id === 'about' && chapters[i].classList.contains('is-collapsed');
+        rects[i] = collapsed[i] ? null : chapters[i].getBoundingClientRect();
+      }
+      var wrapTotal = chaptersWrap ? Math.max(1, chaptersWrap.offsetHeight - vh) : 1;
+      var wrapTop = chaptersWrap ? chaptersWrap.getBoundingClientRect().top : 0;
 
-        // Never override opacity/transform on #about while in collapsed state
-        if (chapters[i].id === 'about' && chapters[i].classList.contains('is-collapsed')) {
-          continue;
-        }
+      // Phase 2: write transforms & opacities in one pass
+      for (var j = 0; j < chapters.length; j++) {
+        var inner = inners[j];
+        var rect = rects[j];
+        if (!inner || !rect) continue;
 
-        var rect = chapters[i].getBoundingClientRect();
-
-        // how much of a screen this section covers right now (0 -> 1).
-        // Using coverage instead of raw distance keeps tall sections
-        // fully readable on small screens, where a section can be taller
-        // than the viewport.
         var shown = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
         var coverage = shown / Math.max(1, Math.min(rect.height, vh));
 
@@ -492,15 +497,15 @@
 
         inner.style.opacity = (1 - fade).toFixed(3);
         inner.style.transform = 'scale(' + scale.toFixed(3) + ')';
-        // PERFORMANCE OPTIMIZATION: Filter blur removed per-frame to eliminate GPU repaint lag
       }
 
-      // slow parallax on the shared background photo
       if (bgImg && chaptersWrap) {
-        var total = chaptersWrap.offsetHeight - vh;
-        var scrolled = clamp01(-chaptersWrap.getBoundingClientRect().top / (total || 1)) * total;
-        var shift = Math.max(-50, Math.min(50, scrolled * -0.012));
-        bgImg.style.transform = 'translate3d(0,' + shift.toFixed(1) + 'px,0)';
+        var scrolled = clamp01(-wrapTop / wrapTotal) * wrapTotal;
+        var shift = Math.max(-50, Math.min(50, scrolled * -0.012)).toFixed(1);
+        if (shift !== lastBgShift) {
+          lastBgShift = shift;
+          bgImg.style.transform = 'translate3d(0,' + shift + 'px,0)';
+        }
       }
     });
   }
@@ -622,30 +627,61 @@
      right-to-left loop can translate -50% seamlessly
   --------------------------------------------------------- */
   function initMarquee() {
-    if (reducedMotion.matches) return;
-
     var gallery = doc.querySelector('.gallery[data-marquee]');
     if (!gallery) return;
 
     var track = gallery.querySelector('.gallery__track');
     if (!track) return;
 
-    var originals = slice(track.children);
-    for (var i = 0; i < originals.length; i++) {
-      var clone = originals[i].cloneNode(true);
+    var lowEnd = doc.documentElement.classList.contains('is-low-end');
 
-      // the duplicate is decoration: hidden from assistive tech
-      // and out of the tab order, but still clickable
-      clone.setAttribute('aria-hidden', 'true');
-      if (clone.tagName === 'BUTTON') {
-        clone.setAttribute('tabindex', '-1');
+    if (!reducedMotion.matches && !lowEnd) {
+      var originals = slice(track.children);
+      for (var i = 0; i < originals.length; i++) {
+        var clone = originals[i].cloneNode(true);
+        clone.setAttribute('aria-hidden', 'true');
+        if (clone.tagName === 'BUTTON') {
+          clone.setAttribute('tabindex', '-1');
+        }
+        var focusable = clone.querySelectorAll('button, a, [tabindex]');
+        for (var f = 0; f < focusable.length; f++) {
+          focusable[f].setAttribute('tabindex', '-1');
+        }
+        track.appendChild(clone);
       }
-      var focusable = clone.querySelectorAll('button, a, [tabindex]');
-      for (var f = 0; f < focusable.length; f++) {
-        focusable[f].setAttribute('tabindex', '-1');
-      }
+    } else if (lowEnd) {
+      gallery.style.overflowX = 'auto';
+      track.style.animation = 'none';
+    }
 
-      track.appendChild(clone);
+    gallery.classList.add('is-offscreen');
+
+    var videos = slice(gallery.querySelectorAll('video[data-src]'));
+    function setGalleryPlayback(active) {
+      gallery.classList.toggle('is-offscreen', !active);
+      for (var vi = 0; vi < videos.length; vi++) {
+        var vid = videos[vi];
+        if (active) {
+          if (!vid.src && vid.dataset.src) {
+            vid.src = vid.dataset.src;
+          }
+          if (!reducedMotion.matches && !lowEnd) {
+            var p = vid.play();
+            if (p && typeof p.catch === 'function') p.catch(function () {});
+          }
+        } else {
+          try { vid.pause(); } catch (e) {}
+        }
+      }
+    }
+
+    if ('IntersectionObserver' in window) {
+      var gIo = new IntersectionObserver(function (entries) {
+        setGalleryPlayback(entries[0].isIntersecting);
+      }, { rootMargin: '260px 0px' });
+      gIo.observe(gallery);
+    } else {
+      setGalleryPlayback(true);
     }
   }
 
@@ -686,30 +722,81 @@
     var trail = doc.getElementById('footerTrail');
     if (!footer || !trail) return;
 
+    var fine = window.matchMedia('(pointer: fine)').matches ||
+               window.matchMedia('(any-pointer: fine)').matches;
+    if (!fine) return;
+
     var gsap = window.gsap;
     if (!gsap || reducedMotion.matches) return;
 
     var images = slice(trail.querySelectorAll('.footer__image'));
     if (!images.length) return;
 
-    var GAP = 60;          // travel distance before the next flower spawns
+    var GAP = 60;
     var index = 0;
     var wrap = gsap.utils.wrap(0, images.length);
+    var hydrated = false;
+    var tickerActive = false;
 
     var mousePos = { x: 0, y: 0 };
     var lastMousePos = { x: 0, y: 0 };
     var isOver = false;
+    var footerRect = null;
+
+    function hydrateTrailImages() {
+      if (hydrated) return;
+      hydrated = true;
+      for (var i = 0; i < images.length; i++) {
+        (function (img) {
+          var stem = img.dataset.stem;
+          if (!stem || img.src) return;
+          img.onerror = function () {
+            img.onerror = null;
+            img.src = 'flower/' + stem + '.png';
+          };
+          img.src = 'assets/flower/' + stem + '.webp';
+        })(images[i]);
+      }
+    }
+
+    function updateFooterRect() {
+      footerRect = footer.getBoundingClientRect();
+    }
 
     function toFooterSpace(e) {
-      var rect = footer.getBoundingClientRect();
-      return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      if (!footerRect) updateFooterRect();
+      return { x: e.clientX - footerRect.left, y: e.clientY - footerRect.top };
+    }
+
+    function trailTick() {
+      if (!isOver) return;
+      var travelDistance = Math.hypot(lastMousePos.x - mousePos.x, lastMousePos.y - mousePos.y);
+      if (travelDistance > GAP) {
+        animateImage();
+        lastMousePos = { x: mousePos.x, y: mousePos.y };
+      }
+    }
+
+    function startTicker() {
+      if (tickerActive) return;
+      tickerActive = true;
+      gsap.ticker.add(trailTick);
+    }
+
+    function stopTicker() {
+      if (!tickerActive) return;
+      tickerActive = false;
+      gsap.ticker.remove(trailTick);
     }
 
     footer.addEventListener('pointerenter', function (e) {
+      hydrateTrailImages();
+      updateFooterRect();
       var p = toFooterSpace(e);
       lastMousePos = { x: p.x, y: p.y };
       mousePos = { x: p.x, y: p.y };
       isOver = true;
+      startTicker();
     }, { passive: true });
 
     footer.addEventListener('pointermove', function (e) {
@@ -720,7 +807,11 @@
 
     footer.addEventListener('pointerleave', function () {
       isOver = false;
+      stopTicker();
     }, { passive: true });
+
+    window.addEventListener('scroll', function () { footerRect = null; }, { passive: true });
+    window.addEventListener('resize', function () { footerRect = null; }, { passive: true });
 
     function animateImage() {
       var img = images[wrap(index)];
@@ -754,17 +845,6 @@
 
       index++;
     }
-
-    gsap.ticker.add(function trailTick() {
-      if (!isOver) return;
-
-      var travelDistance = Math.hypot(lastMousePos.x - mousePos.x, lastMousePos.y - mousePos.y);
-
-      if (travelDistance > GAP) {
-        animateImage();
-        lastMousePos = { x: mousePos.x, y: mousePos.y };
-      }
-    });
   }
 
   /* ---------------------------------------------------------
@@ -780,13 +860,35 @@
      seamless scroll integration without layout shifts.
   --------------------------------------------------------- */
   var cardPullDismissed = false;
+  var currentAutoLift = 0;
+
+  function computeAdaptiveLift() {
+    var vh = window.innerHeight || doc.documentElement.clientHeight || 740;
+    var vw = window.innerWidth || doc.documentElement.clientWidth || 1024;
+    var pullBtn = doc.getElementById('aboutCardPull');
+    var pullBtnHeight = pullBtn ? Math.max(36, pullBtn.offsetHeight || 40) : 40;
+    var clearanceRatio = vh < 660 ? 0.08 : (vw < 768 ? 0.062 : 0.052);
+    var autoLift = Math.round(Math.max(36, Math.min(72, vh * clearanceRatio + pullBtnHeight * 0.25)));
+    var peekHeight = Math.round(Math.max(82, Math.min(130, autoLift + Math.max(46, vh * 0.075))));
+    return { autoLift: autoLift, peekHeight: peekHeight, pullBtnHeight: pullBtnHeight, vh: vh };
+  }
+
+  function publishBottomClearance(cardLiftPx) {
+    var vh = window.innerHeight || doc.documentElement.clientHeight || 740;
+    var pullBtn = doc.getElementById('aboutCardPull');
+    var btnSize = pullBtn ? (pullBtn.offsetHeight || 40) : 40;
+    var clearPx = Math.max(0, (cardLiftPx || 0) + btnSize + 18);
+    var safePct = Math.max(68, Math.min(93, 100 - (clearPx / Math.max(1, vh)) * 100));
+    try {
+      window.dispatchEvent(new CustomEvent('bhuvy:bottomClearance', {
+        detail: { pct: safePct, liftPx: cardLiftPx || 0 }
+      }));
+    } catch (e) {}
+  }
 
   function dismissCardPull() {
     if (cardPullDismissed) return;
     cardPullDismissed = true;
-    try {
-      sessionStorage.setItem('cardPullDismissed', '1');
-    } catch (e) {}
 
     doc.body.classList.add('card-pull-dismissed');
     var about = doc.getElementById('about');
@@ -796,6 +898,7 @@
       about.classList.remove('is-pulled-up');
       about.classList.remove('is-dragging');
       about.style.removeProperty('--card-pull-y');
+      about.style.removeProperty('--card-auto-lift');
       var inner = about.querySelector('.chapter__inner');
       if (inner) {
         inner.style.removeProperty('opacity');
@@ -810,32 +913,44 @@
       pull.classList.remove('is-nudging');
       pull.setAttribute('aria-expanded', 'true');
     }
+    publishBottomClearance(0);
   }
   window.dismissCardPull = dismissCardPull;
 
-  function markHeroEffectsDone() {
-    if (doc.body.classList.contains('hero-effects-done')) return;
-    doc.body.classList.add('hero-effects-done');
+  function showCardPullHint() {
+    cardPullDismissed = false;
+    doc.body.classList.remove('card-pull-dismissed');
+    var about = doc.getElementById('about');
+    if (about) {
+      var dims = computeAdaptiveLift();
+      currentAutoLift = 0;
+      about.style.setProperty('--card-auto-lift', '0px');
+      about.style.setProperty('--card-peek-height', dims.peekHeight + 'px');
+      about.style.setProperty('--card-pull-y', '0px');
+      about.classList.add('has-pull-hint');
+      var pull = doc.getElementById('aboutCardPull') || about.querySelector('.card-pull');
+      if (pull) {
+        pull.classList.remove('is-dismissed');
+        pull.classList.add('is-nudging');
+        pull.setAttribute('aria-expanded', 'false');
+        pull.setAttribute('aria-label', 'Pull to view details');
+      }
+      publishBottomClearance(0);
+    }
+  }
 
-    var alreadyDismissed = false;
-    try {
-      alreadyDismissed = sessionStorage.getItem('cardPullDismissed') === '1';
-    } catch (e) {}
+  function markHeroEffectsDone() {
+    if (!doc.body.classList.contains('hero-effects-done')) {
+      doc.body.classList.add('hero-effects-done');
+    }
 
     var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
-    if (alreadyDismissed || scrollY > 25) {
+    if (scrollY > 40) {
       dismissCardPull();
       return;
     }
 
-    // First time only: show the little pull peek hint.
-    // CRITICAL: Card details strictly remain collapsed!
-    var about = doc.getElementById('about');
-    if (about) {
-      about.classList.add('has-pull-hint');
-      var pull = doc.getElementById('aboutCardPull') || about.querySelector('.card-pull');
-      if (pull) pull.classList.add('is-nudging');
-    }
+    showCardPullHint();
   }
   window.markHeroEffectsDone = markHeroEffectsDone;
 
@@ -852,51 +967,92 @@
     var startX = 0;
     var startTime = 0;
     var currentDiffY = 0;
-    var PEEK_HEIGHT = 90; // matches --card-peek-height (smooth slight pull up)
 
-    function togglePulledUpState(pulledUp) {
-      isPulledUp = !!pulledUp;
-      if (pull) pull.classList.remove('is-nudging');
+    function getRestY() {
+      return 0;
+    }
 
+    function getPeekY() {
+      return -computeAdaptiveLift().peekHeight;
+    }
+
+    function syncAdaptiveDimensions() {
+      if (cardPullDismissed || isDragging) return;
+      var dims = computeAdaptiveLift();
+      currentAutoLift = 0;
+      about.style.setProperty('--card-auto-lift', '0px');
+      about.style.setProperty('--card-peek-height', dims.peekHeight + 'px');
       if (isPulledUp) {
-        about.classList.add('is-pulled-up');
-        about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
-        if (pull) {
-          pull.setAttribute('aria-expanded', 'true');
-          pull.setAttribute('aria-label', 'Collapse details');
-          if (pullText) pullText.textContent = 'Collapse';
-        }
-      } else {
-        about.classList.remove('is-pulled-up');
+        about.style.setProperty('--card-pull-y', (-dims.peekHeight) + 'px');
+        publishBottomClearance(dims.peekHeight);
+      } else if (about.classList.contains('has-pull-hint')) {
         about.style.setProperty('--card-pull-y', '0px');
-        if (pull) {
-          pull.setAttribute('aria-expanded', 'false');
-          pull.setAttribute('aria-label', 'Pull to view details');
-          if (pullText) pullText.textContent = 'Pull for details';
-        }
+        publishBottomClearance(0);
       }
     }
 
-    // Centralized scroll driver integration
+    window.addEventListener('resize', syncAdaptiveDimensions, { passive: true });
+    window.addEventListener('orientationchange', syncAdaptiveDimensions, { passive: true });
+
+    function getSectionTop(el) {
+      var top = 0;
+      var node = el;
+      while (node) {
+        top += node.offsetTop || 0;
+        node = node.offsetParent;
+      }
+      return top;
+    }
+
+    function expandFullStackCard() {
+      isPulledUp = true;
+      if (pull) pull.classList.remove('is-nudging');
+
+      about.classList.remove('is-collapsed');
+      about.classList.add('is-expanded', 'is-pulled-up');
+
+      var reveals = about.querySelectorAll('[data-reveal]');
+      for (var r = 0; r < reveals.length; r++) {
+        reveals[r].classList.add('is-visible');
+      }
+
+      if (pull) {
+        pull.setAttribute('aria-expanded', 'true');
+        pull.setAttribute('aria-label', 'About section opened');
+        if (pullText) pullText.textContent = 'Collapse';
+      }
+
+      var targetTop = getSectionTop(about);
+      dismissCardPull();
+      about.classList.add('is-expanded');
+
+      window.scrollTo({
+        top: targetTop,
+        behavior: reducedMotion.matches ? 'auto' : 'smooth'
+      });
+
+      if (driver && driver.request) driver.request();
+    }
+
+    // Keep the pull button hidden until the hero flower reveal animation finishes
     if (driver && driver.add) {
       driver.add(function (vh) {
         var scrollY = window.pageYOffset || doc.documentElement.scrollTop;
 
-        // When scrolling down past 30px, ensure card inner is revealed
         if (scrollY > 30 && about.classList.contains('is-collapsed')) {
           about.classList.remove('is-collapsed');
         }
 
-        // When scrolled deep into the page (past half hero), dismiss hint permanently
-        if (scrollY > vh * 0.5 && !cardPullDismissed) {
+        if (scrollY > vh * 0.35 && !cardPullDismissed && !isDragging) {
           dismissCardPull();
+        } else if (scrollY <= vh * 0.15 && cardPullDismissed && !isDragging && doc.body.classList.contains('hero-effects-done')) {
+          showCardPullHint();
         }
       });
     }
 
     if (pull) {
       function onPointerDown(e) {
-        // Only primary mouse button or touch/pen
         if (e.button !== undefined && e.button !== 0) return;
 
         isDragging = true;
@@ -916,23 +1072,25 @@
       function onPointerMove(e) {
         if (!isDragging) return;
 
-        var dy = startY - e.clientY; // positive = dragging upward
+        var dy = startY - e.clientY;
         var dx = Math.abs(startX - e.clientX);
-
-        // If predominantly horizontal gesture, let browser handle it
         if (dx > Math.abs(dy) && Math.abs(dy) < 8) return;
 
         currentDiffY = dy;
+        var vh = window.innerHeight || doc.documentElement.clientHeight || 800;
+        var base = isPulledUp ? getPeekY() : getRestY();
+        var nextY = Math.min(0, Math.max(-vh * 0.9, base - dy));
+        about.style.setProperty('--card-pull-y', nextY + 'px');
 
-        if (!isPulledUp) {
-          // Dragging upward from 0
-          var pullUp = Math.max(0, dy);
-          about.style.setProperty('--card-pull-y', (-pullUp) + 'px');
-        } else {
-          // Dragging downward from pulled up (-PEEK_HEIGHT)
-          var pullDown = Math.min(0, dy);
-          var currentY = -PEEK_HEIGHT - pullDown;
-          about.style.setProperty('--card-pull-y', Math.min(0, currentY) + 'px');
+        // Live preview reveal while dragging the full stack card upward
+        if (dy > 36 && about.classList.contains('is-collapsed')) {
+          about.classList.remove('is-collapsed');
+          about.classList.add('is-expanded');
+          var reveals = about.querySelectorAll('[data-reveal]');
+          for (var r = 0; r < reveals.length; r++) {
+            reveals[r].classList.add('is-visible');
+          }
+          if (driver && driver.request) driver.request();
         }
       }
 
@@ -951,41 +1109,24 @@
         var velocity = currentDiffY / (elapsed || 1);
         var distance = Math.abs(currentDiffY);
 
-        if (distance < 8) {
-          // Intentional Click or Tap toggle!
+        // Tap/click or upward drag/flick directly pulls up the full container stack card
+        if (distance < 8 || currentDiffY > 36 || velocity > 0.35) {
           lastPointerToggle = Date.now();
-          togglePulledUpState(!isPulledUp);
+          expandFullStackCard();
           return;
         }
 
-        if (!isPulledUp) {
-          // Pulled up past threshold (36px) or flicked up
-          if (currentDiffY > 36 || velocity > 0.35) {
-            togglePulledUpState(true);
-          } else {
-            // Spring back to hidden
-            about.style.setProperty('--card-pull-y', '0px');
-          }
-        } else {
-          // Pulled down past threshold (-36px) or flicked down
-          if (currentDiffY < -36 || velocity < -0.35) {
-            togglePulledUpState(false);
-          } else {
-            // Spring back to pulled-up state
-            about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
-          }
-        }
+        // Did not reach upward threshold: spring back to resting hint state
+        about.classList.remove('is-expanded');
+        about.classList.add('is-collapsed');
+        about.style.setProperty('--card-pull-y', getRestY() + 'px');
       }
 
-      function onPointerCancel(e) {
+      function onPointerCancel() {
         if (!isDragging) return;
         isDragging = false;
         about.classList.remove('is-dragging');
-        if (!isPulledUp) {
-          about.style.setProperty('--card-pull-y', '0px');
-        } else {
-          about.style.setProperty('--card-pull-y', (-PEEK_HEIGHT) + 'px');
-        }
+        about.style.setProperty('--card-pull-y', (isPulledUp ? getPeekY() : getRestY()) + 'px');
       }
 
       pull.addEventListener('pointerdown', onPointerDown);
@@ -995,24 +1136,23 @@
 
       var lastPointerToggle = 0;
 
-      // Native button click & assistive click support
-      pull.addEventListener('click', function (e) {
+      pull.addEventListener('click', function () {
         if (Date.now() - lastPointerToggle < 400) return;
         lastPointerToggle = Date.now();
-        togglePulledUpState(!isPulledUp);
+        expandFullStackCard();
       });
 
-      // Keyboard accessible Enter / Space
       pull.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           lastPointerToggle = Date.now();
-          togglePulledUpState(!isPulledUp);
+          expandFullStackCard();
         }
       });
     }
   }
 
+  var siteInitialized = false;
   function initSite() {
     initReveal();
 
@@ -1031,14 +1171,20 @@
     }
   }
 
+  function initSiteOnce() {
+    if (siteInitialized) return;
+    siteInitialized = true;
+    initSite();
+  }
+  window.__initSiteOnce = initSiteOnce;
+
   /* ---------------------------------------------------------
      Boot
   --------------------------------------------------------- */
   if (!preloader || !wordEl) {
-    // no preloader in the DOM — just reveal the site
     body.classList.remove('is-loading');
     body.classList.add('is-revealed');
-    initSite();
+    initSiteOnce();
     cleanup();
     return;
   }
@@ -1165,6 +1311,7 @@
     var currentProjects = getCurrentProjects();
     if (index < 0 || index >= currentProjects.length) return;
 
+    hydrated = true;
     currentIndex = index;
     var project = currentProjects[currentIndex];
 
@@ -1286,7 +1433,20 @@
     }
   }, { passive: true });
 
-  loadProject(0, false);
+  var hydrated = false;
+
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        io.disconnect();
+        if (!hydrated) loadProject(0, false);
+      }
+    }, { rootMargin: '320px 0px' });
+    io.observe(workShowcase);
+  } else {
+    loadProject(0, false);
+  }
+  updateButtons();
 })();
 
 
@@ -1298,23 +1458,11 @@
   if (!btn) return;
 
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  /* Every top-level stopping point, in document order. The hero is first,
-     so the last press lands back at the very top. */
   var SELECTOR = '.hero, .chapter, .footer';
+  var cachedList = [];
+  var cachedTops = [];
+  var rafId = null;
 
-  function sections() {
-    return Array.prototype.slice.call(document.querySelectorAll(SELECTOR));
-  }
-
-  function getScrollY() {
-    return window.pageYOffset || document.documentElement.scrollTop || 0;
-  }
-
-  /* Layout offset in the document. Walking offsetTop/offsetParent gives the
-     un-pinned position of sticky sections (the hero, Process), which is what
-     we want to scroll to — their visual rect would just be "wherever they
-     happen to be pinned right now". */
   function docTop(el) {
     var top = 0;
     var node = el;
@@ -1325,42 +1473,55 @@
     return top;
   }
 
-  /* Which section are we standing in? The last one whose top has already
-     crossed a probe line a third of the way down the viewport. */
+  function measureSections() {
+    cachedList = Array.prototype.slice.call(document.querySelectorAll(SELECTOR));
+    cachedTops = new Array(cachedList.length);
+    for (var i = 0; i < cachedList.length; i++) {
+      cachedTops[i] = docTop(cachedList[i]);
+    }
+  }
+
+  function getScrollY() {
+    return window.pageYOffset || document.documentElement.scrollTop || 0;
+  }
+
   function currentIndex() {
-    var list = sections();
-    if (!list.length) return -1;
+    if (!cachedList.length) measureSections();
+    if (!cachedList.length) return -1;
 
     var vh = window.innerHeight || document.documentElement.clientHeight;
     var probe = getScrollY() + vh * 0.35;
     var index = 0;
 
-    for (var i = 0; i < list.length; i++) {
-      if (list[i].getBoundingClientRect().top + getScrollY() <= probe) index = i;
+    for (var i = 0; i < cachedTops.length; i++) {
+      if (cachedTops[i] <= probe) index = i;
     }
     return index;
   }
 
-  var anchor = -1;          // index we are heading to while a scroll settles
+  var anchor = -1;
   var settleTimer = null;
 
   function refresh() {
-    /* While a jump is still in flight the page has not caught up, so keep
-       the button hidden for the final step rather than offering it twice. */
+    rafId = null;
     var from = currentIndex();
     if (anchor !== -1 && anchor < from) from = anchor;
     btn.classList.toggle('is-visible', from > 0);
   }
 
+  function requestRefresh() {
+    if (rafId === null) rafId = requestAnimationFrame(refresh);
+  }
+
   function goUp() {
-    var list = sections();
+    if (!cachedList.length) measureSections();
     var from = currentIndex();
     if (anchor !== -1 && anchor < from) from = anchor;
     if (from <= 0) return;
 
     anchor = from - 1;
     window.scrollTo({
-      top: docTop(list[anchor]),
+      top: cachedTops[anchor] !== undefined ? cachedTops[anchor] : docTop(cachedList[anchor]),
       behavior: reducedMotion.matches ? 'auto' : 'smooth'
     });
     refresh();
@@ -1368,125 +1529,29 @@
 
   btn.addEventListener('click', goUp);
 
-  /* One scroll listener: keep the button's state fresh and forget the anchor
-     once the page has stopped moving (manual scrolls included). */
   window.addEventListener('scroll', function () {
-    refresh();
+    requestRefresh();
     if (settleTimer) clearTimeout(settleTimer);
     settleTimer = setTimeout(function () { anchor = -1; }, 140);
   }, { passive: true });
 
-  window.addEventListener('resize', refresh);
-  window.addEventListener('load', refresh);
-
-  refresh();
-})();
-
-
-/* ==================== CUSTOM CURSOR ==================== */
-(function () {
-  'use strict';
-
-  var star = document.getElementById('cursor');
-  if (!star) return;
-
-  /* Only ever takes over on a real pointing device. A phone or tablet
-     keeps the native behaviour untouched. */
-  var fine = window.matchMedia('(pointer: fine)').matches ||
-             window.matchMedia('(any-pointer: fine)').matches;
-  if (!fine) return;
-
-  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  var root = document.documentElement;
-  root.classList.add('has-custom-cursor');
-
-  /* Elements that should fatten the star. Kept in one place so the feel
-     is easy to tune. */
-  var LINK_SELECTOR =
-    'a, button, [role="tab"], [role="button"], [data-lightbox], iframe, ' +
-    'input, select, textarea, summary, [data-draggable], .flower-node.is-draggable, .card-pull';
-
-  var x = window.innerWidth / 2;
-  var y = window.innerHeight / 2;
-  var targetX = x;
-  var targetY = y;
-  var shown = false;
-  var raf = null;
-
-  function place() {
-    star.style.transform = 'translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,0)';
-  }
-
-  function tick() {
-    var ease = reducedMotion.matches ? 1 : 0.35;
-    x += (targetX - x) * ease;
-    y += (targetY - y) * ease;
-
-    // close enough: snap, draw, and park the loop until the next move
-    if (Math.abs(targetX - x) < 0.1 && Math.abs(targetY - y) < 0.1) {
-      x = targetX;
-      y = targetY;
-      place();
-      raf = null;
-      return;
-    }
-
-    place();
-    raf = requestAnimationFrame(tick);
-  }
-
-  function run() {
-    if (raf === null) raf = requestAnimationFrame(tick);
-  }
-
-  function show() {
-    if (shown) return;
-    shown = true;
-    star.classList.add('is-on');
-    run();
-  }
-
-  function hide() {
-    if (!shown) return;
-    shown = false;
-    star.classList.remove('is-on');
-  }
-
-  /* Pointer position. Tracking the target and easing towards it keeps the
-     star a hair behind a fast flick, the way a physical cursor would be. */
-  window.addEventListener('pointermove', function (e) {
-    if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
-    targetX = e.clientX;
-    targetY = e.clientY;
-    if (!shown) {
-      x = targetX;
-      y = targetY;
-      place();
-      show();
-      return;
-    }
-    show();
-    run();
+  window.addEventListener('resize', function () {
+    measureSections();
+    requestRefresh();
   }, { passive: true });
 
-  window.addEventListener('pointerdown', function () { star.classList.add('is-down'); });
-
-  window.addEventListener('pointerup', function () { star.classList.remove('is-down'); });
-
-  /* Grow over interactive things. mouseover/mouseout bubble, so one
-     listener on the document keeps the state honest everywhere. */
-  document.addEventListener('mouseover', function (e) {
-    var t = e.target;
-    star.classList.toggle('is-link', !!(t && t.closest && t.closest(LINK_SELECTOR)));
+  window.addEventListener('load', function () {
+    measureSections();
+    refresh();
   });
 
-  /* Over an <iframe> the page stops receiving moves — hide rather than
-     let the star freeze at the frame's edge. */
-  document.addEventListener('mouseleave', hide);
-  root.addEventListener('mouseleave', hide);
-  window.addEventListener('blur', hide);
+  window.addEventListener('bhuvy:layoutchange', function () {
+    measureSections();
+    requestRefresh();
+  });
 
-  place();
+  measureSections();
+  refresh();
 })();
 
 
@@ -1508,17 +1573,17 @@
     maxSizeMobile: 190,
   };
 
-  // ONLY approved flower images (1, 2, 4, 5, 6, 7, 8, 9)
+  // ONLY approved flower stems (1, 2, 4, 5, 6, 7, 8, 9)
   // Strictly excluding 3, 10, 11, 12, 13, 14
-  const APPROVED_FLOWER_ASSETS = [
-    'flower/one.png',    // 1: White/Yellow Frangipani
-    'flower/two.png',    // 2: Pink Gerbera
-    'flower/four.png',   // 4: White/Yellow Daisy
-    'flower/five.png',   // 5: Pink/Yellow Plumeria
-    'flower/six.png',    // 6: Pink Lotus
-    'flower/seven.png',  // 7: Deep Red Rose
-    'flower/eight.png',  // 8: Blue Blossom
-    'flower/nine.png'    // 9: Bright Sunflower
+  const APPROVED_FLOWER_STEMS = [
+    'one',    // 1: White/Yellow Frangipani
+    'two',    // 2: Pink Gerbera
+    'four',   // 4: White/Yellow Daisy
+    'five',   // 5: Pink/Yellow Plumeria
+    'six',    // 6: Pink Lotus
+    'seven',  // 7: Deep Red Rose
+    'eight',  // 8: Blue Blossom
+    'nine'    // 9: Bright Sunflower
   ];
 
   // Helper utilities
@@ -1594,13 +1659,14 @@
     flowerElements = [];
 
     // Cycle through approved flowers (1, 2, 4, 5, 6, 7, 8, 9)
-    let pool = shuffle(APPROVED_FLOWER_ASSETS);
+    let pool = shuffle(APPROVED_FLOWER_STEMS);
+    const frag = document.createDocumentFragment();
 
     DENSE_SCATTER_ZONES.forEach(zone => {
       if (pool.length === 0) {
-        pool = shuffle(APPROVED_FLOWER_ASSETS);
+        pool = shuffle(APPROVED_FLOWER_STEMS);
       }
-      const asset = pool.pop();
+      const stem = pool.pop();
 
       // 1. Randomize position within sector
       const posX = getRandom(zone.x[0], zone.x[1]).toFixed(1);
@@ -1630,14 +1696,23 @@
       el.style.setProperty('--final-opacity', opacity);
 
       const img = document.createElement('img');
-      img.src = asset;
+      img.width = 500;
+      img.height = 500;
+      img.decoding = 'async';
+      img.onerror = function () {
+        img.onerror = null;
+        img.src = `flower/${stem}.png`;
+      };
+      img.src = `assets/flower/${stem}.webp`;
       img.alt = 'Floral Bloom';
       img.draggable = false;
 
       el.appendChild(img);
-      container.appendChild(el);
+      frag.appendChild(el);
       flowerElements.push(el);
     });
+
+    container.appendChild(frag);
   }
 
   let dragInitialized = false;
@@ -1762,9 +1837,10 @@
         }, delay);
       });
 
-      // Enable drag and reveal card pull effect after preloader and effects are finished
-      // Total wait = max stagger delay + 850ms CSS bloom transition
-      const remainingEffectsTime = maxDelay + 850;
+      // Enable drag and smoothly reveal pull button ONLY after all flowers finish their bloom transition
+      const isReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const cssBloomMs = isReduced ? 240 : 900;
+      const remainingEffectsTime = maxDelay + cssBloomMs;
       setTimeout(() => {
         enableFlowerDrag();
         markHeroEffectsDone();
@@ -1814,16 +1890,25 @@
   var hero = document.getElementById('hero');
   var scene = document.getElementById('heroScene') || (hero && hero.querySelector('.hero__scene'));
   if (!hero || !scene) return;
-var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMedia('(any-pointer: fine)').matches;
+
+  var isHeroVisible = true;
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (entries) {
+      isHeroVisible = entries[0].isIntersecting;
+      hero.classList.toggle('is-offscreen', !isHeroVisible);
+      if (!isHeroVisible && typeof rest === 'function') rest();
+    }, { threshold: 0 }).observe(hero);
+  }
+
+  var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMedia('(any-pointer: fine)').matches;
   if (!finePointer) return;
 
-  
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reducedMotion.matches) return;
 
-  var nx = 0;   // rendered, -1 (left) → 1 (right)
-  var ny = 0;   // rendered, -1 (top)  → 1 (bottom)
-  var tx = 0;   // target from pointer
+  var nx = 0;
+  var ny = 0;
+  var tx = 0;
   var ty = 0;
   var raf = null;
 
@@ -1859,7 +1944,6 @@ var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMe
     var vh = window.innerHeight || document.documentElement.clientHeight;
     if (!vw || !vh) return;
 
-    // Full-screen normalized coordinates (-1 left/top to +1 right/bottom) across entire viewport
     tx = Math.max(-1, Math.min(1, (e.clientX / vw) * 2 - 1));
     ty = Math.max(-1, Math.min(1, (e.clientY / vh) * 2 - 1));
     run();
@@ -1881,20 +1965,11 @@ var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMe
   }
 
   window.addEventListener('pointermove', function (e) {
-    var r = hero.getBoundingClientRect();
-    if (r.bottom > 0 && r.top < window.innerHeight) {
-      onMove(e);
-    }
+    if (isHeroVisible) onMove(e);
   }, { passive: true });
 
   window.addEventListener('pointerleave', rest, { passive: true });
   document.addEventListener('mouseleave', rest, { passive: true });
-
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function (entries) {
-      if (!entries[0].isIntersecting) rest();
-    }, { threshold: 0 }).observe(hero);
-  }
 
   if (reducedMotion.addEventListener) {
     reducedMotion.addEventListener('change', function () {
@@ -2069,8 +2144,11 @@ var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMe
 
       if (animate) {
         priceEl.classList.remove('is-updated');
-        void priceEl.offsetWidth; /* restart the keyframe */
-        priceEl.classList.add('is-updated');
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            priceEl.classList.add('is-updated');
+          });
+        });
       }
     }
 
@@ -2224,7 +2302,16 @@ var finePointer = window.matchMedia('(pointer: fine)').matches || window.matchMe
     var url = 'https://wa.me/' + WA_NUMBER + '?text=' + encodeURIComponent(buildMessage(picked));
 
     /* opened straight from the submit handler so popup blockers allow it */
-    window.open(url, '_blank', 'noopener');
+    var win = window.open(url, '_blank', 'noopener');
+    if (!win) {
+      var a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
   });
 
   /* ---------------------------------------------------------

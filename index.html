@@ -6,12 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Bhuvanesh</title>
   <meta name="theme-color" content="#0a0a0b">
-  <link rel="preload" href="fonts/GoogleSans-VariableFont_GRAD,opsz,wght.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0a0b'/%3E%3Cpath d='M16 4l2.9 8.9H28l-7.4 5.4 2.8 8.7L16 21.6 8.6 27l2.8-8.7L4 12.9h9.1z' fill='%23f2f0ea'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://skillicons.dev" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://imbhuvanesh.github.io">
+  <link rel="preload" href="assets/fonts/GoogleSans-Latin.woff" as="font" type="font/woff" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Advercase-Font/WOFF2/Advercase-Bold.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/Tamil/NotoSansTamil-700.woff2" as="font" type="font/woff2" crossorigin>
-  <!-- the preloader <video> already uses preload="auto"; rel=preload as=video
-       is not supported by browsers and only logged a warning -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mona+Sans:ital,wdth,wght@0,75..125,200..900;1,75..125,200..900&display=swap"></noscript>
+  <script>
+    (function () {
+      var r = document.documentElement;
+      var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      var saveData = !!(conn && (conn.saveData || (conn.effectiveType && /2g/.test(conn.effectiveType))));
+      var mem = navigator.deviceMemory || 0;
+      var cores = navigator.hardwareConcurrency || 0;
+      var lowEnd = saveData || (mem > 0 && mem <= 2) || (cores > 0 && cores <= 4 && coarse);
+      if (coarse) r.classList.add('is-coarse');
+      if (saveData) r.classList.add('is-save-data');
+      if (lowEnd) r.classList.add('is-low-end');
+    })();
+  </script>
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -19,9 +39,25 @@
 
   <!-- ==================== PRELOADER ==================== -->
   <div class="preloader" id="preloader">
-    <video class="preloader__video" id="preloaderVideo" autoplay muted loop playsinline preload="auto">
-      <source src="videos/preloader.mp4" type="video/mp4">
-    </video>
+    <video class="preloader__video" id="preloaderVideo" autoplay muted loop playsinline preload="metadata" poster="assets/video/preloader-poster.webp"></video>
+    <script>
+      (function () {
+        var v = document.getElementById('preloaderVideo');
+        if (!v) return;
+        var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var sd = document.documentElement.classList.contains('is-save-data');
+        if (rm || sd) {
+          v.preload = 'none';
+          return;
+        }
+        var small = window.innerWidth < 768 || document.documentElement.classList.contains('is-coarse') || document.documentElement.classList.contains('is-low-end');
+        v.src = small ? 'assets/video/preloader-mobile.mp4' : 'assets/video/preloader.mp4';
+        v.onerror = function () {
+          v.onerror = null;
+          v.src = 'videos/preloader.mp4';
+        };
+      })();
+    </script>
     <div class="preloader__center">
       <div class="preloader__word" id="preloadWord" aria-hidden="true"></div>
       <p class="sr-only" role="status" id="loadStatus">Loading website</p>
@@ -45,7 +81,10 @@
           <div class="hero-wrapper">
             <h1 class="sr-only">Bhuvanesh — Developer &amp; Video Editor</h1>
             <div class="hero-media">
-              <img src="hero.png" alt="Hero Visual" class="hero-image" id="heroImage">
+              <picture>
+                <source srcset="assets/img/hero.webp" type="image/webp">
+                <img src="hero.png" alt="Hero Visual" class="hero-image" id="heroImage" width="1730" height="578" decoding="async" fetchpriority="high">
+              </picture>
               <span class="hero-shine" aria-hidden="true"></span>
             </div>
           </div>
@@ -66,8 +105,11 @@
         <div class="chapter__inner">
           <div class="about">
             <div class="about__media" data-reveal>
-              <img class="about__img" src="photos/img.png" alt="Portrait of Bhuvanesh A" loading="lazy"
-                decoding="async">
+              <picture>
+                <source srcset="assets/img/profile.webp" type="image/webp">
+                <img class="about__img" src="photos/img.png" alt="Portrait of Bhuvanesh A" width="1254" height="1254" loading="lazy"
+                  decoding="async">
+              </picture>
             </div>
             <div class="about__body">
               <h2 class="chapter__title" id="aboutTitle" data-reveal data-reveal-delay="100">About Me</h2>
@@ -92,7 +134,10 @@
     <!-- ==================== CHAPTERS (shared bg image) ==================== -->
     <div class="chapters">
       <div class="chapters__bg" aria-hidden="true">
-        <img class="chapters__bg-img" src="photos/bg photo.png" alt="" loading="lazy" decoding="async">
+        <picture>
+          <source srcset="assets/img/chapters-bg.webp" type="image/webp">
+          <img class="chapters__bg-img" src="photos/bg photo.png" alt="" width="1672" height="941" loading="lazy" decoding="async">
+        </picture>
       </div>
 
       <!-- ==================== SERVICES ==================== -->
@@ -188,7 +233,7 @@
 
             <div class="workshowcase__preview-container">
               <div class="workshowcase__frame-wrapper">
-                <iframe class="workshowcase__iframe" src="https://imbhuvanesh.github.io/DG/" title="Live preview"
+                <iframe class="workshowcase__iframe" src="about:blank" data-src="https://imbhuvanesh.github.io/DG/" title="Live preview"
                   loading="lazy"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock allow-modals allow-top-navigation-by-user-activation">
                 </iframe>
@@ -248,37 +293,37 @@
           <div class="gallery" data-marquee>
             <div class="gallery__track">
               <button type="button" class="tile" data-lightbox data-src="Poster/one.jpg" data-alt="Poster design one">
-                <img class="tile__img" src="Poster/one.jpg" alt="Poster design one" loading="lazy" decoding="async">
+                <img class="tile__img" src="Poster/one.jpg" alt="Poster design one" width="736" height="920" loading="lazy" decoding="async">
               </button>
 
               <button type="button" class="tile" data-lightbox data-src="Poster/two.jpg" data-alt="Poster design two">
-                <img class="tile__img" src="Poster/two.jpg" alt="Poster design two" loading="lazy" decoding="async">
+                <img class="tile__img" src="Poster/two.jpg" alt="Poster design two" width="1200" height="1500" loading="lazy" decoding="async">
               </button>
 
               <button type="button" class="tile" data-lightbox data-src="Poster/three.jpg"
                 data-alt="Poster design three">
-                <img class="tile__img" src="Poster/three.jpg" alt="Poster design three" loading="lazy" decoding="async">
+                <img class="tile__img" src="Poster/three.jpg" alt="Poster design three" width="736" height="1243" loading="lazy" decoding="async">
               </button>
 
               <button type="button" class="tile" data-lightbox data-src="Poster/four.jpg" data-alt="Poster design four">
-                <img class="tile__img" src="Poster/four.jpg" alt="Poster design four" loading="lazy" decoding="async">
+                <img class="tile__img" src="Poster/four.jpg" alt="Poster design four" width="736" height="920" loading="lazy" decoding="async">
               </button>
 
-              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/ALG.mp4"
+              <button type="button" class="tile" data-lightbox data-type="video" data-src="assets/video/ALG.mp4"
                 data-alt="Video edit" aria-label="Video edit — open preview">
-                <video class="tile__img" src="Poster/ALG.mp4" autoplay muted loop playsinline preload="metadata"
+                <video class="tile__img" data-src="assets/video/ALG-loop.mp4" poster="assets/video/ALG-poster.webp" muted loop playsinline preload="none"
                   aria-hidden="true"></video>
               </button>
 
               <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/poster.mp4"
                 data-alt="Video edit poster" aria-label="Video edit poster — open preview">
-                <video class="tile__img" src="Poster/poster.mp4" autoplay muted loop playsinline preload="metadata"
+                <video class="tile__img" data-src="assets/video/poster-loop.mp4" poster="assets/video/poster-poster.webp" muted loop playsinline preload="none"
                   aria-hidden="true"></video>
               </button>
 
-              <button type="button" class="tile" data-lightbox data-type="video" data-src="Poster/podcast.mp4"
+              <button type="button" class="tile" data-lightbox data-type="video" data-src="assets/video/podcast.mp4"
                 data-alt="Podcast edit" aria-label="Podcast edit — open preview">
-                <video class="tile__img" src="Poster/podcast.mp4" autoplay muted loop playsinline preload="metadata"
+                <video class="tile__img" data-src="assets/video/podcast-loop.mp4" poster="assets/video/podcast-poster.webp" muted loop playsinline preload="none"
                   aria-hidden="true"></video>
               </button>
             </div>
@@ -297,31 +342,31 @@
             <div class="skill-group" data-reveal>
               <h3 class="skill-group__title">Tech Stack</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=java" height="52" alt="Java" loading="lazy"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=java" width="52" height="52" alt="Java" loading="lazy"
                   decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=html" height="52" alt="HTML" loading="lazy"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=html" width="52" height="52" alt="HTML" loading="lazy"
                   decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=css" height="52" alt="CSS" loading="lazy"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=css" width="52" height="52" alt="CSS" loading="lazy"
                   decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=js" height="52" alt="JavaScript"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=js" width="52" height="52" alt="JavaScript"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=python" height="52" alt="Python"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=python" width="52" height="52" alt="Python"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=nodejs" height="52" alt="Node.js"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=nodejs" width="52" height="52" alt="Node.js"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=mysql" height="52" alt="MySQL"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=mysql" width="52" height="52" alt="MySQL"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=postgres" height="52" alt="PostgreSQL"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=postgres" width="52" height="52" alt="PostgreSQL"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=supabase" height="52" alt="Supabase"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=supabase" width="52" height="52" alt="Supabase"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=flutter" height="52" alt="Flutter"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=flutter" width="52" height="52" alt="Flutter"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=git" height="52" alt="Git" loading="lazy"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=git" width="52" height="52" alt="Git" loading="lazy"
                   decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=linux" height="52" alt="Linux"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=linux" width="52" height="52" alt="Linux"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=vscode" height="52" alt="VS Code"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=vscode" width="52" height="52" alt="VS Code"
                   loading="lazy" decoding="async">
               </div>
             </div>
@@ -329,13 +374,13 @@
             <div class="skill-group" data-reveal data-reveal-delay="100">
               <h3 class="skill-group__title">Creative Tools</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=ps" height="52" alt="Adobe Photoshop"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=ps" width="52" height="52" alt="Adobe Photoshop"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=pr" height="52" alt="Adobe Premiere Pro"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=pr" width="52" height="52" alt="Adobe Premiere Pro"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=ae" height="52" alt="Adobe After Effects"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=ae" width="52" height="52" alt="Adobe After Effects"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=figma" height="52" alt="Figma"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=figma" width="52" height="52" alt="Figma"
                   loading="lazy" decoding="async">
               </div>
             </div>
@@ -343,9 +388,9 @@
             <div class="skill-group" data-reveal data-reveal-delay="200">
               <h3 class="skill-group__title">Productivity &amp; Knowledge</h3>
               <div class="skills">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=notion" height="52" alt="Notion"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=notion" width="52" height="52" alt="Notion"
                   loading="lazy" decoding="async">
-                <img class="skill-icon" src="https://skillicons.dev/icons?i=obsidian" height="52" alt="Obsidian"
+                <img class="skill-icon" src="https://skillicons.dev/icons?i=obsidian" width="52" height="52" alt="Obsidian"
                   loading="lazy" decoding="async">
               </div>
             </div>
@@ -516,20 +561,20 @@
     -->
     <footer class="footer" id="footer" aria-label="Footer">
       <div class="footer__trail" id="footerTrail" aria-hidden="true">
-        <img class="footer__image" src="flower/one.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/two.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/three.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/four.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/five.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/six.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/seven.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/eight.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/nine.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/ten.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/elven.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/tweleve.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/thirteen.png" alt="" loading="lazy" decoding="async">
-        <img class="footer__image" src="flower/fourteen.png" alt="" loading="lazy" decoding="async">
+        <img class="footer__image" data-stem="one" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="two" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="three" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="four" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="five" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="six" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="seven" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="eight" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="nine" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="ten" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="elven" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="tweleve" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="thirteen" width="130" height="130" alt="" decoding="async">
+        <img class="footer__image" data-stem="fourteen" width="130" height="130" alt="" decoding="async">
       </div>
       <div class="footer__inner">
         <p class="footer__follow">Follow on</p>
@@ -616,13 +661,6 @@
     </button>
   </aside>
 
-  <!-- ==================== CUSTOM CURSOR ====================
-       A small white star that rides the pointer. script.js only turns
-       it on (and hides the native cursor) on devices with a real
-       mouse; touch and keyboard users never see it.
-  -->
-  <div class="cursor" id="cursor" aria-hidden="true"></div>
-
   <noscript>
     <style>
       .preloader {
@@ -651,11 +689,11 @@
       document.documentElement.classList.add('force-loaded');
       document.body.classList.remove('is-loading');
       document.body.classList.add('is-revealed');
+      if (typeof window.__initSiteOnce === 'function') {
+        window.__initSiteOnce();
+      }
       if (typeof window.startFloralHeroReveal === 'function') {
         window.startFloralHeroReveal();
-      }
-      if (typeof window.markHeroEffectsDone === 'function') {
-        window.markHeroEffectsDone();
       }
     };
     window.__preloaderFailsafe = setTimeout(window.__forceReveal, 8000);
