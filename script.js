@@ -1565,12 +1565,12 @@
   // Master Configuration
   const CONFIG = {
     initialDelay: 2000,         // Strict 2-second wait after hero reveal
-    staggerInterval: 115,       // Progressive stagger delay between flowers (ms)
-    jitter: 35,                 // Organic random variation (ms)
-    minSizeDesktop: 210,        // Generous size to fill the page with little space
-    maxSizeDesktop: 310,
-    minSizeMobile: 120,
-    maxSizeMobile: 190,
+    staggerInterval: 75,        // Lively, fluid progressive stagger delay between flowers (ms)
+    jitter: 25,                 // Organic random variation (ms)
+    minSizeDesktop: 205,        // Balanced medium size for desktop
+    maxSizeDesktop: 265,        // Balanced medium size for desktop
+    minSizeMobile: 125,         // Balanced medium size for mobile
+    maxSizeMobile: 170,         // Balanced medium size for mobile
   };
 
   // ONLY approved flower stems (1, 2, 4, 5, 6, 7, 8, 9)
@@ -1600,50 +1600,202 @@
     return arr;
   }
 
-  // Dense scatter zones across the entire screen leaving only a little bit of space
-  const DENSE_SCATTER_ZONES = [
-    // Top border row (8 zones spanning left to right)
-    { x: [2, 9],   y: [3, 13],  sizeMult: 1.15 },
-    { x: [14, 22], y: [2, 11],  sizeMult: 1.0  },
-    { x: [27, 35], y: [2, 11],  sizeMult: 1.05 },
-    { x: [40, 48], y: [2, 10],  sizeMult: 1.0  },
-    { x: [52, 60], y: [2, 10],  sizeMult: 1.0  },
-    { x: [65, 73], y: [2, 11],  sizeMult: 1.05 },
-    { x: [78, 86], y: [2, 11],  sizeMult: 1.0  },
-    { x: [91, 98], y: [3, 13],  sizeMult: 1.15 },
+  // 48 stratified perimeter anchor sectors framing the hero with medium-sized blooms
+  const STRATIFIED_ANCHORS = [
+    // Top row: 10 flowers (y: 3% - 13%)
+    { x: 4,  y: 7,  jx: 3, jy: 3, sizeMult: 1.08 },
+    { x: 14, y: 6,  jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 24, y: 6,  jx: 3, jy: 3, sizeMult: 1.04 },
+    { x: 34, y: 5,  jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 44, y: 5,  jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 56, y: 5,  jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 66, y: 5,  jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 76, y: 6,  jx: 3, jy: 3, sizeMult: 1.04 },
+    { x: 86, y: 6,  jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 96, y: 7,  jx: 3, jy: 3, sizeMult: 1.08 },
 
-    // Upper-mid row (framing top of hero visual)
-    { x: [7, 16],  y: [18, 29], sizeMult: 1.05 },
-    { x: [20, 29], y: [16, 27], sizeMult: 0.95 },
-    { x: [34, 44], y: [15, 25], sizeMult: 0.92 },
-    { x: [56, 66], y: [15, 25], sizeMult: 0.92 },
-    { x: [71, 80], y: [16, 27], sizeMult: 0.95 },
-    { x: [84, 93], y: [18, 29], sizeMult: 1.05 },
+    // Upper-mid row: 8 flowers (y: 17% - 27%)
+    { x: 8,  y: 21, jx: 4, jy: 4, sizeMult: 1.06 },
+    { x: 20, y: 19, jx: 4, jy: 3, sizeMult: 1.02 },
+    { x: 32, y: 18, jx: 4, jy: 3, sizeMult: 1.00 },
+    { x: 44, y: 17, jx: 4, jy: 3, sizeMult: 0.98 },
+    { x: 56, y: 17, jx: 4, jy: 3, sizeMult: 0.98 },
+    { x: 68, y: 18, jx: 4, jy: 3, sizeMult: 1.00 },
+    { x: 80, y: 19, jx: 4, jy: 3, sizeMult: 1.02 },
+    { x: 92, y: 21, jx: 4, jy: 4, sizeMult: 1.06 },
 
-    // Mid flanks (left & right sides of hero visual)
-    { x: [2, 10],  y: [36, 52], sizeMult: 1.15 },
-    { x: [11, 20], y: [38, 54], sizeMult: 1.0  },
-    { x: [80, 89], y: [38, 54], sizeMult: 1.0  },
-    { x: [90, 98], y: [36, 52], sizeMult: 1.15 },
+    // Left flank: 5 flowers (x: 4% - 15%, y: 33% - 67%)
+    { x: 5,  y: 33, jx: 3, jy: 4, sizeMult: 1.08 },
+    { x: 12, y: 42, jx: 3, jy: 4, sizeMult: 1.02 },
+    { x: 5,  y: 50, jx: 3, jy: 4, sizeMult: 1.06 },
+    { x: 12, y: 58, jx: 3, jy: 4, sizeMult: 1.02 },
+    { x: 5,  y: 67, jx: 3, jy: 4, sizeMult: 1.08 },
 
-    // Lower-mid row (framing bottom of hero visual)
-    { x: [7, 16],  y: [63, 75], sizeMult: 1.05 },
-    { x: [20, 29], y: [65, 77], sizeMult: 0.95 },
-    { x: [34, 44], y: [68, 80], sizeMult: 0.95 },
-    { x: [56, 66], y: [68, 80], sizeMult: 0.95 },
-    { x: [71, 80], y: [65, 77], sizeMult: 0.95 },
-    { x: [84, 93], y: [63, 75], sizeMult: 1.05 },
+    // Right flank: 5 flowers (x: 85% - 96%, y: 33% - 67%)
+    { x: 95, y: 33, jx: 3, jy: 4, sizeMult: 1.08 },
+    { x: 88, y: 42, jx: 3, jy: 4, sizeMult: 1.02 },
+    { x: 95, y: 50, jx: 3, jy: 4, sizeMult: 1.06 },
+    { x: 88, y: 58, jx: 3, jy: 4, sizeMult: 1.02 },
+    { x: 95, y: 67, jx: 3, jy: 4, sizeMult: 1.08 },
 
-    // Bottom border row (8 zones spanning left to right)
-    { x: [2, 9],   y: [87, 97], sizeMult: 1.15 },
-    { x: [14, 22], y: [89, 98], sizeMult: 1.0  },
-    { x: [27, 35], y: [89, 98], sizeMult: 1.05 },
-    { x: [40, 48], y: [90, 99], sizeMult: 1.05 },
-    { x: [52, 60], y: [90, 99], sizeMult: 1.05 },
-    { x: [65, 73], y: [89, 98], sizeMult: 1.05 },
-    { x: [78, 86], y: [89, 98], sizeMult: 1.0  },
-    { x: [91, 98], y: [87, 97], sizeMult: 1.15 }
+    // Lower-mid row: 10 flowers (y: 73% - 83%)
+    { x: 6,  y: 77, jx: 3, jy: 3, sizeMult: 1.06 },
+    { x: 16, y: 78, jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 26, y: 79, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 36, y: 80, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 46, y: 81, jx: 3, jy: 3, sizeMult: 0.98 },
+    { x: 54, y: 81, jx: 3, jy: 3, sizeMult: 0.98 },
+    { x: 64, y: 80, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 74, y: 79, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 84, y: 78, jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 94, y: 77, jx: 3, jy: 3, sizeMult: 1.06 },
+
+    // Bottom row: 10 flowers (y: 89% - 97%)
+    { x: 4,  y: 93, jx: 3, jy: 3, sizeMult: 1.08 },
+    { x: 14, y: 94, jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 24, y: 95, jx: 3, jy: 3, sizeMult: 1.04 },
+    { x: 34, y: 95, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 44, y: 96, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 56, y: 96, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 66, y: 95, jx: 3, jy: 3, sizeMult: 1.00 },
+    { x: 76, y: 95, jx: 3, jy: 3, sizeMult: 1.04 },
+    { x: 86, y: 94, jx: 3, jy: 3, sizeMult: 1.02 },
+    { x: 96, y: 93, jx: 3, jy: 3, sizeMult: 1.08 },
   ];
+
+  /**
+   * Generates dynamic, organically jittered, non-overlapping coordinates.
+   */
+  function generateFlowerPositions() {
+    const isMob = isMobile();
+    const aspectWeight = isMob ? 1.05 : 1.35;
+    const minDist = isMob ? 8.5 : 8.0;
+
+    const positions = STRATIFIED_ANCHORS.map(a => ({
+      x: Math.max(2.5, Math.min(97.5, a.x + getRandom(-a.jx, a.jx))),
+      y: Math.max(2.5, Math.min(97.5, a.y + getRandom(-a.jy, a.jy))),
+      sizeMult: a.sizeMult || 1.0,
+    }));
+
+    // Multi-pass relaxation to prevent overlaps
+    for (let iter = 0; iter < 12; iter++) {
+      for (let i = 0; i < positions.length; i++) {
+        for (let j = i + 1; j < positions.length; j++) {
+          const dx = positions[i].x - positions[j].x;
+          const dy = (positions[i].y - positions[j].y) * aspectWeight;
+          const d = Math.hypot(dx, dy);
+          if (d < minDist && d > 0.001) {
+            const push = (minDist - d) / 2;
+            const nx = (dx / d) * push * 0.45;
+            const ny = (dy / d) * push * 0.45;
+            positions[i].x = Math.max(2, Math.min(98, positions[i].x + nx));
+            positions[i].y = Math.max(2, Math.min(98, positions[i].y + ny / aspectWeight));
+            positions[j].x = Math.max(2, Math.min(98, positions[j].x - nx));
+            positions[j].y = Math.max(2, Math.min(98, positions[j].y - ny / aspectWeight));
+          }
+        }
+      }
+    }
+
+    return positions;
+  }
+
+  /**
+   * Assigns flower stems ensuring:
+   * 1. Stems of the same type are placed far apart (no repetition/clustering).
+   * 2. Stems are completely randomized and do not repeat the previous visit's placement.
+   */
+  function assignStemsToPositions(positions) {
+    const stems = APPROVED_FLOWER_STEMS;
+    const stemCounts = {};
+    const quota = Math.ceil(positions.length / stems.length);
+    stems.forEach(s => { stemCounts[s] = quota; });
+
+    const placedByStem = {};
+    stems.forEach(s => { placedByStem[s] = []; });
+
+    let prevStems = [];
+    try {
+      const stored = sessionStorage.getItem('bhuvy_prev_flower_stems');
+      if (stored) prevStems = JSON.parse(stored);
+    } catch (e) {}
+
+    const indices = shuffle(positions.map((_, i) => i));
+    const assigned = new Array(positions.length);
+    const aspectWeight = isMobile() ? 1.05 : 1.35;
+
+    indices.forEach(idx => {
+      const pos = positions[idx];
+      const prevStemForThisSlot = prevStems && prevStems[idx];
+      const candidates = [];
+
+      shuffle(stems).forEach(stem => {
+        if (stemCounts[stem] <= 0) return;
+        const placed = placedByStem[stem];
+        let dist = 9999;
+        if (placed.length > 0) {
+          dist = Math.min(...placed.map(p => Math.hypot(pos.x - p.x, (pos.y - p.y) * aspectWeight)));
+        }
+        // Penalize repeating the exact same flower in this position from previous reload
+        if (prevStemForThisSlot && stem === prevStemForThisSlot) {
+          dist *= 0.35;
+        }
+        candidates.push({ stem, dist });
+      });
+
+      candidates.sort((a, b) => b.dist - a.dist);
+      const topDist = candidates[0].dist;
+      const topPool = candidates.filter(c => c.dist >= topDist * 0.85);
+      const chosen = topPool[getRandomInt(0, topPool.length - 1)].stem;
+
+      assigned[idx] = chosen;
+      stemCounts[chosen]--;
+      placedByStem[chosen].push(pos);
+    });
+
+    try {
+      sessionStorage.setItem('bhuvy_prev_flower_stems', JSON.stringify(assigned));
+    } catch (e) {}
+
+    return assigned;
+  }
+
+  /**
+   * Creates a spatially distributed reveal sequence so sequential flower reveals
+   * jump across disparate locations across the screen in an unpredictable, natural rhythm.
+   */
+  function createSpatialRevealSequence(elements) {
+    const remaining = [...elements];
+    const sequence = [];
+    const aspectWeight = isMobile() ? 1.05 : 1.35;
+
+    // Pick first flower at random
+    const firstIdx = getRandomInt(0, remaining.length - 1);
+    sequence.push(remaining.splice(firstIdx, 1)[0]);
+
+    while (remaining.length > 0) {
+      const last = sequence[sequence.length - 1];
+      const lastX = parseFloat(last.style.left);
+      const lastY = parseFloat(last.style.top);
+
+      const scored = remaining.map((el, idx) => {
+        const x = parseFloat(el.style.left);
+        const y = parseFloat(el.style.top);
+        const dist = Math.hypot(x - lastX, (y - lastY) * aspectWeight);
+        return { el, idx, dist };
+      });
+
+      scored.sort((a, b) => b.dist - a.dist);
+      // Select unpredictably from the farthest candidate flowers
+      const poolSize = Math.max(1, Math.floor(scored.length * 0.45));
+      const pick = scored[getRandomInt(0, poolSize - 1)];
+
+      sequence.push(pick.el);
+      remaining.splice(pick.idx, 1);
+    }
+
+    return sequence;
+  }
 
   let flowerElements = [];
 
@@ -1658,28 +1810,21 @@
     container.innerHTML = '';
     flowerElements = [];
 
-    // Cycle through approved flowers (1, 2, 4, 5, 6, 7, 8, 9)
-    let pool = shuffle(APPROVED_FLOWER_STEMS);
+    const positions = generateFlowerPositions();
+    const assignedStems = assignStemsToPositions(positions);
     const frag = document.createDocumentFragment();
 
-    DENSE_SCATTER_ZONES.forEach(zone => {
-      if (pool.length === 0) {
-        pool = shuffle(APPROVED_FLOWER_STEMS);
-      }
-      const stem = pool.pop();
+    positions.forEach((pos, idx) => {
+      const stem = assignedStems[idx];
 
-      // 1. Randomize position within sector
-      const posX = getRandom(zone.x[0], zone.x[1]).toFixed(1);
-      const posY = getRandom(zone.y[0], zone.y[1]).toFixed(1);
-
-      // 2. Randomize rotation (-180deg to +180deg)
+      // 1. Randomize rotation (-180deg to +180deg)
       const rotation = getRandomInt(-180, 180);
       const rotStart = rotation + getRandomInt(-30, 30);
 
-      // 3. Flower size (large enough to fill the page leaving only little space)
+      // 2. Flower size: prominently large so even the smaller flowers are bold & visible
       const minSize = isMobile() ? CONFIG.minSizeMobile : CONFIG.minSizeDesktop;
       const maxSize = isMobile() ? CONFIG.maxSizeMobile : CONFIG.maxSizeDesktop;
-      const rawSize = getRandom(minSize, maxSize) * (zone.sizeMult || 1);
+      const rawSize = getRandom(minSize, maxSize) * (pos.sizeMult || 1.05);
       const size = Math.round(rawSize);
 
       const opacity = getRandom(0.92, 1.0).toFixed(2);
@@ -1687,8 +1832,8 @@
       // Create DOM node
       const el = document.createElement('div');
       el.className = 'flower-node';
-      el.style.left = `${posX}%`;
-      el.style.top = `${posY}%`;
+      el.style.left = `${pos.x.toFixed(1)}%`;
+      el.style.top = `${pos.y.toFixed(1)}%`;
       el.style.width = `${size}px`;
       el.style.height = `${size}px`;
       el.style.setProperty('--rot', `${rotation}deg`);
@@ -1820,8 +1965,8 @@
       el.classList.remove('is-revealed');
     });
 
-    // Shuffle reveal order so flowers bloom organically across the whole page
-    const sequence = shuffle(flowerElements);
+    // Spatially distributed sequence: reveals jump dynamically across disparate locations
+    const sequence = createSpatialRevealSequence(flowerElements);
 
     let maxDelay = 0;
 
